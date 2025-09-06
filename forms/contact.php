@@ -20,8 +20,8 @@ $contact->subject = $_POST['subject'];
 // ✅ Enable SMTP with Gmail
 $contact->smtp = array(
   'host' => 'smtp.gmail.com',
-  'username' => 'bobby.domdomjt1@gmail.com',        // Replace with your Gmail address
-  'password' => 'kfffvgfyrtvsypjs',           // Use App Password, not your Gmail login
+  'username' => 'team.onse2025@gmail.com',        // Replace with your Gmail address
+  'password' => 'fnsc qiki yflf gxbo',           // Use App Password, not your Gmail login
   'port' => '587'
 );
 
