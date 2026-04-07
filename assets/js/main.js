@@ -11,48 +11,48 @@
 
   const PORTFOLIO_DETAILS = {
     '1': {
-      heading: 'App 1',
-      title: 'Mobile app concept',
-      category: 'App',
+      heading: 'Portfolio 1',
+      title: 'Portfolio layout v1',
+      category: 'Web',
       client: 'Personal project',
       date: '2024',
       url: '#',
       urlLabel: 'Add your link',
-      description: 'UI exploration and prototype for a productivity app. Focus on clear navigation, accessible components, and a cohesive visual system.',
-      images: ['assets/img/portfolio/portfolio-1.jpg', 'assets/img/portfolio/portfolio-details-1.jpg', 'assets/img/portfolio/portfolio-details-2.jpg']
+      description: 'First version of my portfolio layout, focused on clear hierarchy and responsive sections.',
+      images: ['assets/img/portfolio/1.png', 'assets/img/portfolio/portfolio-1.jpg', 'assets/img/portfolio/portfolio-details-1.jpg']
     },
     '2': {
-      heading: 'Web 3',
-      title: 'Responsive web experience',
+      heading: 'Portfolio 2',
+      title: 'Portfolio layout v2',
       category: 'Web',
       client: 'Freelance',
       date: '2023',
       url: '#',
       urlLabel: 'Add your link',
-      description: 'Full-width layouts, component library, and performance-minded front-end structure for a marketing site.',
-      images: ['assets/img/portfolio/portfolio-2.jpg', 'assets/img/portfolio/portfolio-details-2.jpg', 'assets/img/portfolio/portfolio-details-3.jpg']
+      description: 'Refined portfolio layout with updated visuals and content structure.',
+      images: ['assets/img/portfolio/2.png', 'assets/img/portfolio/portfolio-2.jpg', 'assets/img/portfolio/portfolio-details-2.jpg']
     },
     '3': {
-      heading: 'App 2',
-      title: 'App dashboard',
-      category: 'App',
+      heading: 'Nexus 1',
+      title: 'Nexus dashboard view',
+      category: 'Web app',
       client: 'Academic / demo',
       date: '2023',
       url: '#',
       urlLabel: 'Add your link',
-      description: 'Dashboard views with data summaries, filters, and export-friendly layouts.',
-      images: ['assets/img/portfolio/portfolio-3.jpg', 'assets/img/portfolio/portfolio-details-1.jpg', 'assets/img/portfolio/portfolio-details-3.jpg']
+      description: 'Dashboard-style view for the Nexus project, showing data summaries and key actions.',
+      images: ['assets/img/portfolio/nexus-1.png', 'assets/img/portfolio/portfolio-3.jpg', 'assets/img/portfolio/portfolio-details-3.jpg']
     },
     '4': {
-      heading: 'Card 2',
-      title: 'Print & digital card set',
-      category: 'Card',
+      heading: 'Nexus 2',
+      title: 'Nexus detail view',
+      category: 'Web app',
       client: 'Brand concept',
       date: '2022',
       url: '#',
       urlLabel: 'Add your link',
-      description: 'Coordinated card designs for events and social campaigns with consistent typography and color.',
-      images: ['assets/img/portfolio/portfolio-4.jpg', 'assets/img/portfolio/portfolio-details-2.jpg', 'assets/img/portfolio/portfolio-1.jpg']
+      description: 'Detail and secondary views for the Nexus project, highlighting interaction states.',
+      images: ['assets/img/portfolio/nexus-2.png', 'assets/img/portfolio/portfolio-4.jpg', 'assets/img/portfolio/portfolio-details-2.jpg']
     },
     '5': {
       heading: 'Web 2',
