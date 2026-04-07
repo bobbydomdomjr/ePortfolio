@@ -7,7 +7,7 @@
   'use strict';
 
   const RECEIVING_EMAIL = 'bobby.domdomjr1@gmail.com';
-  const PLACEHOLDER = 'YOUR_WEB3FORMS_ACCESS_KEY';
+  const PLACEHOLDER = 'uxouffksdiurvvky';
 
   function showState(form, state) {
     const loading = form.querySelector('.loading');
