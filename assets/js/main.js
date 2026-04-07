@@ -9,6 +9,144 @@
 (function() {
   "use strict";
 
+  const PORTFOLIO_DETAILS = {
+    '1': {
+      heading: 'App 1',
+      title: 'Mobile app concept',
+      category: 'App',
+      client: 'Personal project',
+      date: '2024',
+      url: '#',
+      urlLabel: 'Add your link',
+      description: 'UI exploration and prototype for a productivity app. Focus on clear navigation, accessible components, and a cohesive visual system.',
+      images: ['assets/img/portfolio/portfolio-1.jpg', 'assets/img/portfolio/portfolio-details-1.jpg', 'assets/img/portfolio/portfolio-details-2.jpg']
+    },
+    '2': {
+      heading: 'Web 3',
+      title: 'Responsive web experience',
+      category: 'Web',
+      client: 'Freelance',
+      date: '2023',
+      url: '#',
+      urlLabel: 'Add your link',
+      description: 'Full-width layouts, component library, and performance-minded front-end structure for a marketing site.',
+      images: ['assets/img/portfolio/portfolio-2.jpg', 'assets/img/portfolio/portfolio-details-2.jpg', 'assets/img/portfolio/portfolio-details-3.jpg']
+    },
+    '3': {
+      heading: 'App 2',
+      title: 'App dashboard',
+      category: 'App',
+      client: 'Academic / demo',
+      date: '2023',
+      url: '#',
+      urlLabel: 'Add your link',
+      description: 'Dashboard views with data summaries, filters, and export-friendly layouts.',
+      images: ['assets/img/portfolio/portfolio-3.jpg', 'assets/img/portfolio/portfolio-details-1.jpg', 'assets/img/portfolio/portfolio-details-3.jpg']
+    },
+    '4': {
+      heading: 'Card 2',
+      title: 'Print & digital card set',
+      category: 'Card',
+      client: 'Brand concept',
+      date: '2022',
+      url: '#',
+      urlLabel: 'Add your link',
+      description: 'Coordinated card designs for events and social campaigns with consistent typography and color.',
+      images: ['assets/img/portfolio/portfolio-4.jpg', 'assets/img/portfolio/portfolio-details-2.jpg', 'assets/img/portfolio/portfolio-1.jpg']
+    },
+    '5': {
+      heading: 'Web 2',
+      title: 'Corporate website refresh',
+      category: 'Web',
+      client: 'Demo client',
+      date: '2024',
+      url: '#',
+      urlLabel: 'Add your link',
+      description: 'Information architecture update, reusable sections, and CMS-friendly templates.',
+      images: ['assets/img/portfolio/portfolio-5.jpg', 'assets/img/portfolio/portfolio-details-3.jpg', 'assets/img/portfolio/portfolio-details-1.jpg']
+    },
+    '6': {
+      heading: 'App 3',
+      title: 'Utility app screens',
+      category: 'App',
+      client: 'Personal project',
+      date: '2023',
+      url: '#',
+      urlLabel: 'Add your link',
+      description: 'Onboarding, settings, and core task flows with emphasis on speed and low cognitive load.',
+      images: ['assets/img/portfolio/portfolio-6.jpg', 'assets/img/portfolio/portfolio-details-1.jpg', 'assets/img/portfolio/portfolio-details-3.jpg']
+    },
+    '7': {
+      heading: 'Card 1',
+      title: 'Invitation & stationery',
+      category: 'Card',
+      client: 'Event concept',
+      date: '2022',
+      url: '#',
+      urlLabel: 'Add your link',
+      description: 'Elegant layout and print-ready artwork for invitations and thank-you cards.',
+      images: ['assets/img/portfolio/portfolio-7.jpg', 'assets/img/portfolio/portfolio-details-2.jpg', 'assets/img/portfolio/portfolio-7.jpg']
+    },
+    '8': {
+      heading: 'Card 3',
+      title: 'Promotional card series',
+      category: 'Card',
+      client: 'Marketing demo',
+      date: '2023',
+      url: '#',
+      urlLabel: 'Add your link',
+      description: 'Series of cards for seasonal campaigns with modular illustrations and copy blocks.',
+      images: ['assets/img/portfolio/portfolio-8.jpg', 'assets/img/portfolio/portfolio-details-3.jpg', 'assets/img/portfolio/portfolio-8.jpg']
+    },
+    '9': {
+      heading: 'Web 3',
+      title: 'Landing page system',
+      category: 'Web',
+      client: 'Freelance',
+      date: '2024',
+      url: '#',
+      urlLabel: 'Add your link',
+      description: 'Hero variants, feature grids, and testimonial sections built for easy reuse across launches.',
+      images: ['assets/img/portfolio/portfolio-9.jpg', 'assets/img/portfolio/portfolio-details-1.jpg', 'assets/img/portfolio/portfolio-9.jpg']
+    }
+  }
+
+  const applyPortfolioDetailsFromQuery = () => {
+    const slidesWrap = select('#portfolio-details-slides')
+    if (!slidesWrap) return
+    const id = new URLSearchParams(window.location.search).get('id')
+    const data = id ? PORTFOLIO_DETAILS[id] : null
+    if (!data) return
+
+    const headingEl = select('#portfolio-details-heading')
+    const crumbEl = select('#portfolio-details-crumb')
+    if (headingEl) headingEl.textContent = data.heading
+    if (crumbEl) crumbEl.textContent = data.heading
+
+    const titleEl = select('#pd-title')
+    const descEl = select('#pd-description')
+    if (titleEl) titleEl.textContent = data.title
+    if (descEl) descEl.textContent = data.description
+
+    const cat = select('#pd-category')
+    const client = select('#pd-client')
+    const date = select('#pd-date')
+    const urlA = select('#pd-url')
+    if (cat) cat.textContent = data.category
+    if (client) client.textContent = data.client
+    if (date) date.textContent = data.date
+    if (urlA) {
+      urlA.href = data.url
+      urlA.textContent = data.urlLabel
+    }
+
+    slidesWrap.innerHTML = data.images.map((src) =>
+      '<div class="swiper-slide"><img src="' + src + '" alt=""></div>'
+    ).join('')
+
+    document.title = data.heading + ' — Portfolio Details'
+  }
+
   /**
    * Easy selector helper function
    */
@@ -191,57 +329,67 @@
   });
 
   /**
-   * Initiate portfolio lightbox 
+   * Initiate portfolio lightbox
    */
-  const portfolioLightbox = GLightbox({
-    selector: '.portfolio-lightbox'
-  });
+  if (select('.portfolio-lightbox', true).length) {
+    GLightbox({
+      selector: '.portfolio-lightbox'
+    })
+  }
+
+  applyPortfolioDetailsFromQuery()
 
   /**
    * Portfolio details slider
    */
-  new Swiper('.portfolio-details-slider', {
-    speed: 400,
-    loop: true,
-    autoplay: {
-      delay: 5000,
-      disableOnInteraction: false
-    },
-    pagination: {
-      el: '.swiper-pagination',
-      type: 'bullets',
-      clickable: true
-    }
-  });
+  const portfolioDetailsSlider = select('.portfolio-details-slider')
+  if (portfolioDetailsSlider) {
+    new Swiper('.portfolio-details-slider', {
+      speed: 400,
+      loop: true,
+      autoplay: {
+        delay: 5000,
+        disableOnInteraction: false
+      },
+      pagination: {
+        el: portfolioDetailsSlider.querySelector('.swiper-pagination'),
+        type: 'bullets',
+        clickable: true
+      }
+    })
+  }
 
   /**
    * Testimonials slider
    */
-  new Swiper('.testimonials-slider', {
-    speed: 600,
-    loop: true,
-    autoplay: {
-      delay: 5000,
-      disableOnInteraction: false
-    },
-    slidesPerView: 'auto',
-    pagination: {
-      el: '.swiper-pagination',
-      type: 'bullets',
-      clickable: true
-    },
-    breakpoints: {
-      320: {
-        slidesPerView: 1,
-        spaceBetween: 20
+  const testimonialsSlider = select('.testimonials-slider')
+  if (testimonialsSlider) {
+    new Swiper('.testimonials-slider', {
+      speed: 600,
+      loop: true,
+      autoplay: {
+        delay: 5000,
+        disableOnInteraction: false
       },
+      slidesPerView: 'auto',
+      pagination: {
+        el: testimonialsSlider.querySelector('.swiper-pagination'),
+        type: 'bullets',
+        clickable: true
+      },
+      breakpoints: {
+        320: {
+          slidesPerView: 1,
+          spaceBetween: 20
+        },
 
-      1200: {
-        slidesPerView: 3,
-        spaceBetween: 20
+        1200: {
+          slidesPerView: 3,
+          spaceBetween: 20
+        }
       }
-    }
-  });
+    })
+  }
 
   /**
    * Animation on scroll
@@ -259,5 +407,10 @@
    * Initiate Pure Counter 
    */
   new PureCounter();
+
+  const footerYear = select('#footer-year')
+  if (footerYear) {
+    footerYear.textContent = new Date().getFullYear()
+  }
 
 })()
