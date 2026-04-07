@@ -1,0 +1,8 @@
+{
+  "name": "eportfolio/contact-mail",
+  "description": "PHP mail fallback for hosts without Node serverless",
+  "require": {
+    "php": ">=8.0",
+    "phpmailer/phpmailer": "^6.9"
+  }
+}

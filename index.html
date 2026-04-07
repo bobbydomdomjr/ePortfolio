@@ -645,7 +645,7 @@ engaging user experiences. </p>
                 <label for="message">Message</label>
                 <textarea class="form-control" name="message" rows="5" required></textarea>
               </div>
-              <p class="small text-muted mb-2">Sends in the background (no mail app or third-party form). Gmail app password belongs only in your host’s environment variables, not in the website code.</p>
+              <p class="small text-muted mb-2">Sends in the background. On Vercel, use project environment variables for Gmail (never put the app password in this HTML/JS). If you see “405 Not Allowed”, the <code>api/</code> folder is probably not deployed—see README.</p>
               <div class="my-3">
                 <div class="loading">Loading</div>
                 <div class="error-message"></div>

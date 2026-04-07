@@ -3,8 +3,15 @@ const nodemailer = require('nodemailer');
 module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
 
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, Accept');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    return res.status(204).end();
+  }
+
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
+    res.setHeader('Allow', 'POST, OPTIONS');
     return res.status(405).send('Method Not Allowed');
   }
 

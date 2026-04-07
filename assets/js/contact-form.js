@@ -1,11 +1,12 @@
 /**
- * Posts to /api/contact (Vercel serverless). Gmail SMTP uses GMAIL_USER + GMAIL_APP_PASSWORD
- * only on the server—never put your app password in this file or in HTML.
+ * 1) POST /api/contact — Vercel serverless (env: GMAIL_USER, GMAIL_APP_PASSWORD).
+ * 2) If that returns 404/405, POST /forms/contact.php — PHP + PHPMailer (forms/mail.config.php).
  */
 (function () {
   'use strict';
 
   const API_PATH = '/api/contact';
+  const PHP_FALLBACK = '/forms/contact.php';
 
   function showState(form, state) {
     const loading = form.querySelector('.loading');
@@ -23,11 +24,36 @@
     showState(form, 'error');
   }
 
+  function postJson(url, payload) {
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/plain',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async function sendContact(endpoint, payload) {
+    let res = await postJson(endpoint, payload);
+    if (
+      (res.status === 405 || res.status === 404) &&
+      endpoint === API_PATH
+    ) {
+      res = await postJson(PHP_FALLBACK, payload);
+    }
+    const text = (await res.text()).trim();
+    return { ok: res.ok, status: res.status, text: text };
+  }
+
   document.querySelectorAll('form.php-email-form[data-contact-handler]').forEach(function (form) {
     form.addEventListener('submit', function (event) {
       event.preventDefault();
 
-      const endpoint = form.getAttribute('data-contact-endpoint') || API_PATH;
+      const primary =
+        form.getAttribute('data-contact-endpoint') || API_PATH;
       const fd = new FormData(form);
       const payload = {
         name: (fd.get('name') || '').toString().trim(),
@@ -43,20 +69,7 @@
 
       showState(form, 'loading');
 
-      fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'text/plain',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify(payload),
-      })
-        .then(function (res) {
-          return res.text().then(function (text) {
-            return { ok: res.ok, status: res.status, text: text.trim() };
-          });
-        })
+      sendContact(primary, payload)
         .then(function (result) {
           if (result.ok && result.text === 'OK') {
             showState(form, 'sent');
@@ -64,14 +77,17 @@
           } else {
             displayError(
               form,
-              result.text || 'Something went wrong (' + result.status + ').'
+              result.text ||
+                'Send failed (' +
+                  result.status +
+                  '). See README: Vercel needs an empty Output Directory + env vars; PHP hosts need composer install and forms/mail.config.php.'
             );
           }
         })
         .catch(function () {
           displayError(
             form,
-            'Could not reach the server. Deploy with Vercel (or run `vercel dev`) so /api/contact exists.'
+            'Network error. Check your connection or try again.'
           );
         });
     });
