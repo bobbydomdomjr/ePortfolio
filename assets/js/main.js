@@ -19,7 +19,7 @@
       url: '#',
       urlLabel: 'Add your link',
       description: 'UI exploration and prototype for a productivity app. Focus on clear navigation, accessible components, and a cohesive visual system.',
-      images: ['assets/img/portfolio/portfolio-1.jpg', 'assets/img/portfolio/portfolio-details-1.jpg', 'assets/img/portfolio/portfolio-details-2.jpg']
+      images: ['assets/img/portfolio/nexus-1.png', 'assets/img/portfolio/portfolio-details-1.jpg', 'assets/img/portfolio/portfolio-details-2.jpg']
     },
     '2': {
       heading: 'Web 3',
@@ -30,7 +30,7 @@
       url: '#',
       urlLabel: 'Add your link',
       description: 'Full-width layouts, component library, and performance-minded front-end structure for a marketing site.',
-      images: ['assets/img/portfolio/portfolio-2.jpg', 'assets/img/portfolio/portfolio-details-2.jpg', 'assets/img/portfolio/portfolio-details-3.jpg']
+      images: ['assets/img/portfolio/nexus-2.png', 'assets/img/portfolio/portfolio-details-2.jpg', 'assets/img/portfolio/portfolio-details-3.jpg']
     },
     '3': {
       heading: 'App 2',
@@ -41,7 +41,7 @@
       url: '#',
       urlLabel: 'Add your link',
       description: 'Dashboard views with data summaries, filters, and export-friendly layouts.',
-      images: ['assets/img/portfolio/portfolio-3.jpg', 'assets/img/portfolio/portfolio-details-1.jpg', 'assets/img/portfolio/portfolio-details-3.jpg']
+      images: ['assets/img/portfolio/1.png', 'assets/img/portfolio/portfolio-details-1.jpg', 'assets/img/portfolio/portfolio-details-3.jpg']
     },
     '4': {
       heading: 'Card 2',
