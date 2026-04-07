@@ -1,13 +1,11 @@
 /**
- * Contact form for static hosting (Vercel, GitHub Pages, etc.).
- * - With a Web3Forms access key: POSTs to https://api.web3forms.com/submit (free at https://web3forms.com).
- * - Without a key: opens the visitor's email client via mailto (no signup required).
+ * Posts to /api/contact (Vercel serverless). Gmail SMTP uses GMAIL_USER + GMAIL_APP_PASSWORD
+ * only on the server—never put your app password in this file or in HTML.
  */
 (function () {
   'use strict';
 
-  const RECEIVING_EMAIL = 'bobby.domdomjr1@gmail.com';
-  const PLACEHOLDER = 'uxouffksdiurvvky';
+  const API_PATH = '/api/contact';
 
   function showState(form, state) {
     const loading = form.querySelector('.loading');
@@ -25,96 +23,57 @@
     showState(form, 'error');
   }
 
-  function useWeb3Forms(key) {
-    return key && key.length >= 32 && key !== PLACEHOLDER && !/^YOUR_/i.test(key);
-  }
-
-  function submitMailto(form) {
-    const fd = new FormData(form);
-    const name = (fd.get('name') || '').toString().trim();
-    const email = (fd.get('email') || '').toString().trim();
-    const subject = (fd.get('subject') || '').toString().trim();
-    const message = (fd.get('message') || '').toString().trim();
-    const body =
-      'Name: ' + name + '\n' +
-      'Email: ' + email + '\n\n' +
-      message;
-    const q =
-      'subject=' + encodeURIComponent(subject || 'ePortfolio contact') +
-      '&body=' + encodeURIComponent(body);
-    const sent = form.querySelector('.sent-message');
-    if (sent) {
-      sent.textContent =
-        'Your email app should open with your message. Send it from there to reach me. Thank you!';
-    }
-    window.location.href = 'mailto:' + RECEIVING_EMAIL + '?' + q;
-    showState(form, 'sent');
-    form.reset();
-  }
-
-  function submitWeb3(form, accessKey) {
-    const fd = new FormData(form);
-    const subject = (fd.get('subject') || '').toString().trim();
-    const payload = {
-      access_key: accessKey,
-      subject: '[ePortfolio] ' + (subject || 'Contact form'),
-      name: (fd.get('name') || '').toString().trim(),
-      email: (fd.get('email') || '').toString().trim(),
-      message: (fd.get('message') || '').toString().trim(),
-    };
-
-    showState(form, 'loading');
-
-    fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify(payload),
-    })
-      .then(function (res) {
-        return res.json().then(function (data) {
-          return { ok: res.ok, data: data };
-        });
-      })
-      .then(function (result) {
-        if (result.data && result.data.success) {
-          const sent = form.querySelector('.sent-message');
-          if (sent) {
-            sent.textContent = 'Your message has been sent. Thank you!';
-          }
-          showState(form, 'sent');
-          form.reset();
-        } else {
-          const msg =
-            (result.data && (result.data.message || result.data.error)) ||
-            'Could not send message. Try again or use email below.';
-          displayError(form, msg);
-        }
-      })
-      .catch(function () {
-        displayError(
-          form,
-          'Network error. Check your connection or use the email address in the sidebar.'
-        );
-      });
-  }
-
   document.querySelectorAll('form.php-email-form[data-contact-handler]').forEach(function (form) {
     form.addEventListener('submit', function (event) {
       event.preventDefault();
-      const key = (form.getAttribute('data-web3forms-access-key') || '').trim();
-      if (useWeb3Forms(key)) {
-        submitWeb3(form, key);
-      } else {
-        showState(form, 'loading');
-        try {
-          submitMailto(form);
-        } catch (e) {
-          displayError(form, 'Could not open email. Write to ' + RECEIVING_EMAIL);
-        }
+
+      const endpoint = form.getAttribute('data-contact-endpoint') || API_PATH;
+      const fd = new FormData(form);
+      const payload = {
+        name: (fd.get('name') || '').toString().trim(),
+        email: (fd.get('email') || '').toString().trim(),
+        subject: (fd.get('subject') || '').toString().trim(),
+        message: (fd.get('message') || '').toString().trim(),
+      };
+
+      const sent = form.querySelector('.sent-message');
+      if (sent) {
+        sent.textContent = 'Your message has been sent. Thank you!';
       }
+
+      showState(form, 'loading');
+
+      fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/plain',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify(payload),
+      })
+        .then(function (res) {
+          return res.text().then(function (text) {
+            return { ok: res.ok, status: res.status, text: text.trim() };
+          });
+        })
+        .then(function (result) {
+          if (result.ok && result.text === 'OK') {
+            showState(form, 'sent');
+            form.reset();
+          } else {
+            displayError(
+              form,
+              result.text || 'Something went wrong (' + result.status + ').'
+            );
+          }
+        })
+        .catch(function () {
+          displayError(
+            form,
+            'Could not reach the server. Deploy with Vercel (or run `vercel dev`) so /api/contact exists.'
+          );
+        });
     });
   });
 })();
