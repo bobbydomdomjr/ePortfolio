@@ -2,6 +2,6 @@
   "name": "eportfolio",
   "private": true,
   "dependencies": {
-    "nodemailer": "^6.9.16"
+    "nodemailer": "^8.0.4"
   }
 }
