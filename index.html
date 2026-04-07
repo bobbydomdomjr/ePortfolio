@@ -636,34 +636,35 @@
           </div>
 
           <div class="col-lg-7 mt-5 mt-lg-0 d-flex align-items-stretch">
-            <form action="#" method="post" role="form" class="php-email-form" data-contact-handler>
-              <div class="row">
-                <div class="form-group col-md-6">
-                  <label for="name">Your Name</label>
-                  <input type="text" name="name" class="form-control" id="name" required autocomplete="name">
+            <div class="w-100">
+              <form action="#" method="post" role="form" class="php-email-form h-100 d-flex flex-column" data-contact-handler>
+                <div class="row">
+                  <div class="col-md-6 form-group">
+                    <label for="contact-name">Your Name</label>
+                    <input type="text" name="name" class="form-control" id="contact-name" required autocomplete="name">
+                  </div>
+                  <div class="col-md-6 form-group">
+                    <label for="contact-email">Your Email</label>
+                    <input type="email" class="form-control" name="email" id="contact-email" required autocomplete="email">
+                  </div>
                 </div>
-                <div class="form-group col-md-6">
-                  <label for="email">Your Email</label>
-                  <input type="email" class="form-control" name="email" id="email" required autocomplete="email">
+                <div class="form-group">
+                  <label for="contact-subject">Subject</label>
+                  <input type="text" class="form-control" name="subject" id="contact-subject" required>
                 </div>
-              </div>
-              <div class="form-group">
-                <label for="subject">Subject</label>
-                <input type="text" class="form-control" name="subject" id="subject" required>
-              </div>
-              <div class="form-group">
-                <label for="message">Message</label>
-                <textarea class="form-control" name="message" rows="5" required></textarea>
-              </div>
-              <p class="small text-muted mb-2">Sends in the background. On Vercel, use project environment variables for Gmail (never put the app password in this HTML/JS). If you see “405 Not Allowed”, the <code>api/</code> folder is probably not deployed—see README.</p>
-              <div class="my-3">
-                <div class="loading">Loading</div>
-                <div class="error-message"></div>
-                <div class="sent-message">Your message has been sent. Thank you!</div>
-              </div>
-              <div class="text-center"><button type="submit">Send Message</button></div>
-            </form>
-
+                <div class="form-group flex-grow-1 d-flex flex-column">
+                  <label for="contact-message">Message</label>
+                  <textarea class="form-control flex-grow-1" name="message" id="contact-message" rows="6" required></textarea>
+                </div>
+                <p class="small text-muted mb-2 mt-1">Uses your deployed mail endpoint (Vercel <code>api/contact</code> or PHP <code>forms/contact.php</code>). Needs <code>http://</code> or <code>https://</code>—not opening the file directly from disk.</p>
+                <div class="my-3">
+                  <div class="loading">Sending…</div>
+                  <div class="error-message"></div>
+                  <div class="sent-message">Your message has been sent. Thank you!</div>
+                </div>
+                <div class="text-center mt-auto pt-2"><button type="submit">Send Message</button></div>
+              </form>
+            </div>
           </div>
 
         </div>
