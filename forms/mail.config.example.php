@@ -5,7 +5,7 @@
  */
 return [
     'gmail_user' => 'bobby.domdomjr1@gmail.com',
-    'gmail_app_password' => 'uxouffksdiurvvky',
+    'gmail_app_password' => 'your-gmail-app-password',
     // Optional: inbox to receive messages (defaults to gmail_user)
     // 'contact_to' => 'bobby.domdomjr1@gmail.com',
 ];
