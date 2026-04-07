@@ -611,32 +611,34 @@ engaging user experiences. </p>
           </div>
 
           <div class="col-lg-7 mt-5 mt-lg-0 d-flex align-items-stretch">
-            <form action="forms/contact.php" method="post" role="form" class="php-email-form">
-  <div class="row">
-    <div class="form-group col-md-6">
-      <label for="name">Your Name</label>
-      <input type="text" name="name" class="form-control" id="name" required>
-    </div>
-    <div class="form-group col-md-6">
-      <label for="email">Your Email</label>
-      <input type="email" class="form-control" name="email" id="email" required>
-    </div>
-  </div>
-  <div class="form-group">
-    <label for="subject">Subject</label>
-    <input type="text" class="form-control" name="subject" id="subject" required>
-  </div>
-  <div class="form-group">
-    <label for="message">Message</label>
-    <textarea class="form-control" name="message" rows="5" required></textarea>
-  </div>
-  <div class="my-3">
-    <div class="loading">Loading</div>
-    <div class="error-message"></div>
-    <div class="sent-message">Your message has been sent. Thank you!</div>
-  </div>
-  <div class="text-center"><button type="submit">Send Message</button></div>
-</form>
+            <!-- Optional: get a free key at https://web3forms.com and paste it below to send mail in the background (no mail app). Otherwise Submit opens your email app with the message filled in. -->
+            <form action="#" method="post" role="form" class="php-email-form" data-contact-handler data-web3forms-access-key="YOUR_WEB3FORMS_ACCESS_KEY">
+              <div class="row">
+                <div class="form-group col-md-6">
+                  <label for="name">Your Name</label>
+                  <input type="text" name="name" class="form-control" id="name" required autocomplete="name">
+                </div>
+                <div class="form-group col-md-6">
+                  <label for="email">Your Email</label>
+                  <input type="email" class="form-control" name="email" id="email" required autocomplete="email">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" class="form-control" name="subject" id="subject" required>
+              </div>
+              <div class="form-group">
+                <label for="message">Message</label>
+                <textarea class="form-control" name="message" rows="5" required></textarea>
+              </div>
+              <p class="small text-muted mb-2">By default, Send opens your email app with this message ready to send. For silent send from the page, add a free <a href="https://web3forms.com" rel="noopener noreferrer" target="_blank">Web3Forms</a> key to <code>data-web3forms-access-key</code> on this form.</p>
+              <div class="my-3">
+                <div class="loading">Loading</div>
+                <div class="error-message"></div>
+                <div class="sent-message">Your message has been sent. Thank you!</div>
+              </div>
+              <div class="text-center"><button type="submit">Send Message</button></div>
+            </form>
 
           </div>
 
@@ -674,7 +676,7 @@ engaging user experiences. </p>
   <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
   <script src="assets/vendor/typed.js/typed.umd.js"></script>
   <script src="assets/vendor/waypoints/noframework.waypoints.js"></script>
-  <script src="assets/vendor/php-email-form/validate.js"></script>
+  <script src="assets/js/contact-form.js"></script>
 
   <!-- Template Main JS File -->
   <script src="assets/js/main.js"></script>
