@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { defaultContent } from '../content.js'
+import { cloneContent } from '../lib/content.js'
 import { validateContent } from '../lib/content-validation.js'
 import { supabase, supabaseConfigured } from '../lib/supabase.js'
 
@@ -30,7 +31,7 @@ const draftJson = computed(() => JSON.stringify(draft.value, null, 2))
 const activeSectionIndex = computed(() => editorSections.findIndex((section) => section.id === activeEditorSection.value))
 const parsedDraft = computed(() => {
   try {
-    return { value: validateContent(structuredClone(draft.value)), error: '' }
+    return { value: validateContent(cloneContent(draft.value)), error: '' }
   } catch (parseError) {
     return { value: null, error: parseError.message }
   }
@@ -163,7 +164,7 @@ async function saveContent() {
   error.value = ''
   status.value = ''
   try {
-    const content = validateContent(structuredClone(draft.value))
+    const content = validateContent(cloneContent(draft.value))
     const updatedAt = new Date().toISOString()
     const { error: saveError } = await supabase.from('portfolio_content').upsert(
       { id: 'main', content, updated_at: updatedAt },
