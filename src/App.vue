@@ -12,6 +12,8 @@ const isAdmin = window.location.pathname.replace(/\/+$/, '').endsWith('/admin')
 const content = ref(structuredClone(defaultContent))
 const isDark = ref(readSavedTheme() === 'dark')
 const mobileMenuOpen = ref(false)
+const menuButton = ref(null)
+const mainNavigation = ref(null)
 const activeFilter = ref('All')
 const searchTerm = ref('')
 const selectedProject = ref(null)
@@ -304,6 +306,13 @@ function onKeydown(event) {
   if (selectedProject.value) closeProject()
 }
 
+function onDocumentPointerDown(event) {
+  if (!mobileMenuOpen.value) return
+  const target = event.target
+  if (target instanceof Node && (menuButton.value?.contains(target) || mainNavigation.value?.contains(target))) return
+  mobileMenuOpen.value = false
+}
+
 function scrollToTop() {
   window.scrollTo({
     top: 0,
@@ -338,12 +347,14 @@ async function submitContact(event) {
 onMounted(() => {
   if (!isAdmin) loadContent()
   window.addEventListener('keydown', onKeydown)
+  document.addEventListener('pointerdown', onDocumentPointerDown)
   window.addEventListener('scroll', updateScrollProgress, { passive: true })
   updateScrollProgress()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
+  document.removeEventListener('pointerdown', onDocumentPointerDown)
   window.removeEventListener('scroll', updateScrollProgress)
   if (scrollFrame) window.cancelAnimationFrame(scrollFrame)
   document.body.classList.remove('dialog-open')
@@ -363,14 +374,14 @@ onBeforeUnmount(() => {
         <span class="wordmark-mark">B.</span>
         <span>{{ content.profile.name }}<small>PORTFOLIO / 2026</small></span>
       </a>
-      <button class="menu-button" type="button" aria-controls="primary-navigation" :aria-expanded="mobileMenuOpen" :aria-label="mobileMenuOpen ? 'Close navigation' : 'Open navigation'" @click="mobileMenuOpen = !mobileMenuOpen">
+      <button ref="menuButton" class="menu-button" type="button" aria-controls="primary-navigation" :aria-expanded="mobileMenuOpen" :aria-label="mobileMenuOpen ? 'Close navigation' : 'Open navigation'" @click="mobileMenuOpen = !mobileMenuOpen">
         <span class="menu-icon" :class="{ 'is-open': mobileMenuOpen }" aria-hidden="true">
           <span></span>
           <span></span>
           <span></span>
         </span>
       </button>
-      <nav id="primary-navigation" class="main-nav" :class="{ 'is-open': mobileMenuOpen }" aria-label="Main navigation">
+      <nav ref="mainNavigation" id="primary-navigation" class="main-nav" :class="{ 'is-open': mobileMenuOpen }" aria-label="Main navigation">
         <a
           v-for="item in navItems"
           :key="item.id"
