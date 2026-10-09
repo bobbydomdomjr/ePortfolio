@@ -1,6 +1,6 @@
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
 
-module.exports = async (req, res) => {
+export default async function contact(req, res) {
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
 
   if (req.method === 'OPTIONS') {
@@ -67,4 +67,4 @@ module.exports = async (req, res) => {
     console.error('contact mail error', err);
     return res.status(502).send('Could not send email. Check server logs and Gmail app password.');
   }
-};
+}

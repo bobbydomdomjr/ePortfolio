@@ -3,4 +3,6 @@
 .vercel
 node_modules/
 vendor/
+dist/
 forms/mail.config.php
+public/assets/img/
