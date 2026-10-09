@@ -182,14 +182,14 @@ onBeforeUnmount(() => {
         <span class="wordmark-mark">B.</span>
         <span>{{ content.profile.name }}<small>PORTFOLIO / 2026</small></span>
       </a>
-      <button class="menu-button" type="button" :aria-expanded="mobileMenuOpen" :aria-label="mobileMenuOpen ? 'Close navigation' : 'Open navigation'" @click="mobileMenuOpen = !mobileMenuOpen">
+      <button class="menu-button" type="button" aria-controls="primary-navigation" :aria-expanded="mobileMenuOpen" :aria-label="mobileMenuOpen ? 'Close navigation' : 'Open navigation'" @click="mobileMenuOpen = !mobileMenuOpen">
         <span class="menu-icon" :class="{ 'is-open': mobileMenuOpen }" aria-hidden="true">
           <span></span>
           <span></span>
           <span></span>
         </span>
       </button>
-      <nav class="main-nav" :class="{ 'is-open': mobileMenuOpen }" aria-label="Main navigation">
+      <nav id="primary-navigation" class="main-nav" :class="{ 'is-open': mobileMenuOpen }" aria-label="Main navigation">
         <a v-for="item in ['About', 'Work', 'Experience', 'Services', 'Contact']" :key="item" :href="`#${item.toLowerCase()}`" @click="mobileMenuOpen = false">{{ item }}</a>
         <button class="theme-toggle" type="button" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'" @click="isDark = !isDark; setTheme()">
           {{ isDark ? '☼' : '◐' }}
