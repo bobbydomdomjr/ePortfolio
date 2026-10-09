@@ -39,6 +39,15 @@ export function validateContent(value) {
   validateEntries(value.education, ['title', 'organization', 'period', 'description'], 'Education')
   validateEntries(value.services, ['title', 'description'], 'Service')
   validateEntries(value.projects, ['title', 'category', 'year', 'image', 'description'], 'Project')
+  if (value.testimonials !== undefined) {
+    if (!Array.isArray(value.testimonials)) throw new Error('The "testimonials" field must be a list.')
+    validateEntries(value.testimonials, ['name', 'role', 'organization', 'project', 'quote'], 'Client review')
+    for (const [index, review] of value.testimonials.entries()) {
+      for (const field of ['name', 'quote']) {
+        if (!review[field].trim()) throw new Error(`Client review item ${index + 1} "${field}" must not be empty.`)
+      }
+    }
+  }
 
   for (const [index, skill] of value.skills.entries()) {
     if (typeof skill === 'string') continue

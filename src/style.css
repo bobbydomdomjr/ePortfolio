@@ -1161,6 +1161,81 @@ img {
   color: var(--muted);
 }
 
+.reviews-section {
+  border-block: 1px solid var(--line);
+  background: var(--mint);
+}
+
+.reviews-content > .eyebrow {
+  margin: 0 0 17px;
+}
+
+.reviews-header {
+  align-items: flex-end;
+  margin-bottom: 38px;
+}
+
+.reviews-header .section-heading {
+  margin-bottom: 0;
+}
+
+.reviews-header > p {
+  max-width: 300px;
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.review-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 34px;
+  min-height: 235px;
+  margin: 0;
+  padding: 26px;
+  border: 1px solid var(--line);
+  background: var(--paper-raised);
+}
+
+.review-card blockquote {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.75;
+  letter-spacing: -0.025em;
+}
+
+.review-card figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.review-card figcaption strong {
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.review-card figcaption small {
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
 .contact-section {
   border-top: 0;
   background: var(--mint);
@@ -1655,6 +1730,20 @@ img {
   font-family: var(--display);
   font-size: 18px;
   letter-spacing: -0.04em;
+}
+
+.section-help,
+.section-empty-state {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.section-empty-state {
+  padding: 16px;
+  border: 1px dashed var(--line);
+  border-radius: 4px;
 }
 
 .form-grid {
@@ -2179,6 +2268,23 @@ img {
     gap: 25px;
   }
 
+  .reviews-header {
+    margin-bottom: 28px;
+  }
+
+  .review-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .review-card {
+    min-height: 190px;
+    padding: 21px;
+  }
+
+  .review-card blockquote {
+    font-size: 15px;
+  }
+
   .service-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     margin-top: 30px;
@@ -2401,6 +2507,7 @@ img {
   .scroll-cue,
   .work-section,
   .services-section,
+  .reviews-section,
   .contact-section,
   .footer,
   .section-label,

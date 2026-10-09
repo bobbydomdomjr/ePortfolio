@@ -62,6 +62,7 @@ export const defaultContent = {
     { name: 'Python', level: 78 },
     { name: 'WordPress & CMS', level: 84 },
   ],
+  testimonials: [],
   projects: [
     {
       id: 'nexus-mobile',

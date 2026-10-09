@@ -21,6 +21,14 @@ const activeSection = ref('home')
 const showBackToTop = ref(false)
 const headlineText = computed(() => content.value.headline.replace(/[.!?]+$/, ''))
 const filters = computed(() => ['All', ...new Set(content.value.projects.map((project) => project.category).filter(Boolean))])
+const navItems = computed(() => [
+  { label: 'About', id: 'about' },
+  { label: 'Work', id: 'work' },
+  { label: 'Experience', id: 'experience' },
+  { label: 'Services', id: 'services' },
+  ...(content.value.testimonials.length ? [{ label: 'Client reviews', id: 'reviews' }] : []),
+  { label: 'Contact', id: 'contact' },
+])
 const vReveal = {
   mounted(element) {
     element.classList.add('scroll-reveal')
@@ -58,7 +66,8 @@ function setTheme() {
 
 function normalizeContent(candidate) {
   try {
-    return validateContent(candidate)
+    const validatedContent = validateContent(candidate)
+    return { ...validatedContent, testimonials: validatedContent.testimonials || [] }
   } catch (error) {
     console.error('Published portfolio content is not in the expected format:', error)
     return null
@@ -208,12 +217,12 @@ onBeforeUnmount(() => {
       </button>
       <nav id="primary-navigation" class="main-nav" :class="{ 'is-open': mobileMenuOpen }" aria-label="Main navigation">
         <a
-          v-for="item in ['About', 'Work', 'Experience', 'Services', 'Contact']"
-          :key="item"
-          :href="`#${item.toLowerCase()}`"
-          :aria-current="activeSection === item.toLowerCase() ? 'location' : undefined"
+          v-for="item in navItems"
+          :key="item.id"
+          :href="`#${item.id}`"
+          :aria-current="activeSection === item.id ? 'location' : undefined"
           @click="mobileMenuOpen = false"
-        >{{ item }}</a>
+        >{{ item.label }}</a>
         <button class="theme-toggle" type="button" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'" @click="isDark = !isDark; setTheme()">
           {{ isDark ? '☼' : '◐' }}
         </button>
@@ -398,9 +407,39 @@ onBeforeUnmount(() => {
         </div>
       </section>
 
+      <section v-if="content.testimonials.length" id="reviews" class="reviews-section section-space">
+        <div class="section-shell">
+          <div class="section-label"><span>06</span><span>CLIENT REVIEWS</span></div>
+          <div v-reveal class="reviews-content" data-reveal="up">
+            <p class="eyebrow">TRUST BUILT THROUGH THE WORK</p>
+            <div class="section-header reviews-header">
+              <h2 class="section-heading">The experience<br /><span>matters as much as the result.</span></h2>
+              <p>Feedback shared with permission from people and teams I’ve worked with.</p>
+            </div>
+            <div class="review-grid">
+              <figure
+                v-for="(review, index) in content.testimonials"
+                :key="`${review.name}-${review.organization}-${index}`"
+                v-reveal
+                data-reveal="zoom"
+                :data-reveal-delay="index * 90"
+                class="review-card"
+              >
+                <blockquote>{{ review.quote }}</blockquote>
+                <figcaption>
+                  <strong>{{ review.name }}</strong>
+                  <span v-if="review.role || review.organization">{{ [review.role, review.organization].filter(Boolean).join(' · ') }}</span>
+                  <small v-if="review.project">{{ review.project }}</small>
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="contact" class="contact-section section-space">
         <div class="section-shell">
-          <div class="section-label"><span>06</span><span>LET'S CONNECT</span></div>
+          <div class="section-label"><span>{{ content.testimonials.length ? '07' : '06' }}</span><span>LET'S CONNECT</span></div>
           <div v-reveal class="contact-content" data-reveal="up">
             <p class="eyebrow"><span class="status-dot"></span> HAVE A PROJECT IN MIND?</p>
             <h2 class="contact-heading">Let's make<br /><span>something matter.</span></h2>

@@ -7,6 +7,35 @@ test('accepts the included portfolio content', () => {
   assert.equal(validateContent(defaultContent), defaultContent)
 })
 
+test('accepts client reviews and older content without a testimonials collection', () => {
+  const content = structuredClone(defaultContent)
+  content.testimonials = [{
+    name: 'Jordan Lee',
+    role: 'Project lead',
+    organization: 'Example organization',
+    project: 'Internal dashboard',
+    quote: 'Clear communication and thoughtful delivery.',
+  }]
+  assert.equal(validateContent(content).testimonials[0].name, 'Jordan Lee')
+  delete content.testimonials
+  assert.equal(validateContent(content), content)
+})
+
+test('rejects malformed client reviews', () => {
+  const content = structuredClone(defaultContent)
+  content.testimonials = [{ name: 'Jordan Lee', role: '', organization: '', project: '' }]
+  assert.throws(() => validateContent(content), /Client review item 1 "quote"/)
+})
+
+test('requires a client name and review quote before publishing', () => {
+  const content = structuredClone(defaultContent)
+  content.testimonials = [{ name: ' ', role: '', organization: '', project: '', quote: 'Thoughtful work.' }]
+  assert.throws(() => validateContent(content), /"name" must not be empty/)
+  content.testimonials[0].name = 'Jordan Lee'
+  content.testimonials[0].quote = '  '
+  assert.throws(() => validateContent(content), /"quote" must not be empty/)
+})
+
 test('accepts skill objects with proficiency levels and legacy skill strings', () => {
   const content = structuredClone(defaultContent)
   content.skills[0] = { name: 'Database administration', level: 88 }
