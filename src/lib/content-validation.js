@@ -43,6 +43,9 @@ export function validateContent(value) {
     if (!Array.isArray(value.testimonials)) throw new Error('The "testimonials" field must be a list.')
     validateEntries(value.testimonials, ['name', 'role', 'organization', 'project', 'quote'], 'Client review')
     for (const [index, review] of value.testimonials.entries()) {
+      if (review.photo !== undefined) {
+        requireText(review.photo, `Client review item ${index + 1} "photo"`)
+      }
       for (const field of ['name', 'quote']) {
         if (!review[field].trim()) throw new Error(`Client review item ${index + 1} "${field}" must not be empty.`)
       }

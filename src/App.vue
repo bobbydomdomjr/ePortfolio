@@ -216,6 +216,16 @@ function caseStudyEntries(project) {
     .filter((entry) => typeof entry.text === 'string' && entry.text.trim())
 }
 
+function reviewerInitials(name) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join('')
+    .toUpperCase()
+}
+
 function printResume() {
   trackPortfolioEvent('Résumé PDF requested')
   window.print()
@@ -533,6 +543,10 @@ onBeforeUnmount(() => {
                 :data-reveal-delay="index * 90"
                 class="review-card"
               >
+                <div class="reviewer-photo">
+                  <img v-if="safeImage(review.photo)" :src="safeImage(review.photo)" :alt="`Photo of ${review.name}`" loading="lazy" />
+                  <span v-else aria-hidden="true">{{ reviewerInitials(review.name) }}</span>
+                </div>
                 <blockquote>{{ review.quote }}</blockquote>
                 <figcaption>
                   <strong>{{ review.name }}</strong>

@@ -11,12 +11,14 @@ test('accepts client reviews and older content without a testimonials collection
   const content = structuredClone(defaultContent)
   content.testimonials = [{
     name: 'Jordan Lee',
+    photo: '/assets/img/reviews/jordan-lee.jpg',
     role: 'Project lead',
     organization: 'Example organization',
     project: 'Internal dashboard',
     quote: 'Clear communication and thoughtful delivery.',
   }]
   assert.equal(validateContent(content).testimonials[0].name, 'Jordan Lee')
+  assert.equal(validateContent(content).testimonials[0].photo, '/assets/img/reviews/jordan-lee.jpg')
   delete content.testimonials
   assert.equal(validateContent(content), content)
 })
@@ -34,6 +36,19 @@ test('requires a client name and review quote before publishing', () => {
   content.testimonials[0].name = 'Jordan Lee'
   content.testimonials[0].quote = '  '
   assert.throws(() => validateContent(content), /"quote" must not be empty/)
+})
+
+test('rejects a non-text client photo value', () => {
+  const content = structuredClone(defaultContent)
+  content.testimonials = [{
+    name: 'Jordan Lee',
+    photo: { url: '/assets/img/reviews/jordan-lee.jpg' },
+    role: '',
+    organization: '',
+    project: '',
+    quote: 'Thoughtful work.',
+  }]
+  assert.throws(() => validateContent(content), /Client review item 1 "photo" must be a text value/)
 })
 
 test('accepts skill objects with proficiency levels and legacy skill strings', () => {

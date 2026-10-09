@@ -97,7 +97,7 @@ function makeServiceItem() {
 }
 
 function makeTestimonialItem() {
-  return { name: '', role: '', organization: '', project: '', quote: '' }
+  return { name: '', photo: '', role: '', organization: '', project: '', quote: '' }
 }
 
 function addEntry(list, factory) {
@@ -429,7 +429,7 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
 
               <div v-if="activeEditorSection === 'testimonials'" class="form-section">
                 <h3>Client reviews</h3>
-                <p class="section-help">Only publish feedback you have permission to share. Use the client's own words and confirm how they want to be credited.</p>
+                <p class="section-help">Only publish feedback and client photos you have permission to share. Add a photo path such as <code>/assets/img/reviews/client-name.jpg</code>; place the image in <code>assets/img/reviews/</code> and redeploy.</p>
                 <p v-if="draft.testimonials.length === 0" class="section-empty-state">No client reviews added yet. You can add reviews here whenever you receive permission to share them.</p>
                 <div v-for="(item, index) in draft.testimonials" :key="`testimonial-${index}`" class="repeat-group">
                   <div class="repeat-heading">
@@ -438,6 +438,7 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
                   </div>
                   <div class="form-grid two-up">
                     <label>Client name<input v-model="item.name" type="text" autocomplete="name" /></label>
+                    <label>Client photo path<input v-model="item.photo" type="text" placeholder="/assets/img/reviews/client-name.jpg" /></label>
                     <label>Role<input v-model="item.role" type="text" /></label>
                     <label>Organization<input v-model="item.organization" type="text" /></label>
                     <label>Project or context<input v-model="item.project" type="text" /></label>
