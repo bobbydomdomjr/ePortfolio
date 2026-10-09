@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { defaultContent } from '../content.js'
 import { cloneContent } from '../lib/content.js'
 import { validateContent } from '../lib/content-validation.js'
-import { supabase, supabaseConfigured } from '../lib/supabase.js'
+import { safeImage, supabase, supabaseConfigured } from '../lib/supabase.js'
 
 const email = ref('')
 const password = ref('')
@@ -14,6 +14,8 @@ const error = ref('')
 const busy = ref(false)
 const lastSaved = ref('')
 const fileInput = ref(null)
+const imageUploads = ref({})
+const hasActiveImageUploads = computed(() => Object.values(imageUploads.value).some((upload) => upload.busy))
 const activeEditorSection = ref('profile')
 const editorSections = [
   { id: 'profile', label: 'Profile' },
@@ -106,6 +108,54 @@ function addEntry(list, factory) {
 
 function removeEntry(list, index) {
   list.splice(index, 1)
+}
+
+async function uploadImage(file, category, key, review = null) {
+  if (!file) return
+  const extensions = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'image/gif': 'gif',
+  }
+  const extension = extensions[file.type]
+  if (!extension) {
+    imageUploads.value[key] = { error: 'Choose a JPG, PNG, WebP, or GIF image.' }
+    return
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    imageUploads.value[key] = { error: 'Image must be 5 MB or smaller.' }
+    return
+  }
+  if (!session.value || !supabase) {
+    imageUploads.value[key] = { error: 'Sign in as an admin before uploading images.' }
+    return
+  }
+
+  imageUploads.value[key] = { busy: true, error: '' }
+  try {
+    const objectPath = `${session.value.user.id}/${category}/${crypto.randomUUID()}.${extension}`
+    const { error: uploadError } = await supabase.storage
+      .from('portfolio-images')
+      .upload(objectPath, file, { cacheControl: '3600', contentType: file.type, upsert: false })
+    if (uploadError) throw uploadError
+
+    const { data } = supabase.storage.from('portfolio-images').getPublicUrl(objectPath)
+    if (category === 'profile') draft.value.profile.image = data.publicUrl
+    else if (review) review.photo = data.publicUrl
+    imageUploads.value[key] = { busy: false, error: '' }
+    status.value = 'Image uploaded. Publish changes to show it on your portfolio.'
+    error.value = ''
+  } catch (uploadError) {
+    imageUploads.value[key] = { busy: false, error: 'Image upload failed. Check the storage setup and try again.' }
+    console.error('Portfolio image upload failed:', uploadError)
+  }
+}
+
+function handleImageUpload(event, field, key, review = null) {
+  const file = event.target.files?.[0]
+  event.target.value = ''
+  void uploadImage(file, field === 'review' ? 'reviews' : 'profile', key, review)
 }
 
 async function signIn() {
@@ -322,6 +372,14 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
                   <label>Email<input v-model="draft.profile.email" type="email" /></label>
                   <label>Phone<input v-model="draft.profile.phone" type="tel" /></label>
                   <label>Image path<input v-model="draft.profile.image" type="text" /></label>
+                  <div class="image-upload-field">
+                    <span>Profile photo</span>
+                    <img v-if="safeImage(draft.profile.image)" class="image-upload-preview profile-upload-preview" :src="safeImage(draft.profile.image)" alt="Profile photo preview" />
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Upload profile photo" @change="handleImageUpload($event, 'profile', 'profile')" />
+                    <small>JPG, PNG, WebP, or GIF. Maximum 5 MB.</small>
+                    <small v-if="imageUploads.profile?.busy" role="status">Uploading profile photo...</small>
+                    <small v-else-if="imageUploads.profile?.error" class="image-upload-error" role="alert">{{ imageUploads.profile.error }}</small>
+                  </div>
                   <label>Website URL<input v-model="draft.profile.website" type="url" /></label>
                   <label>Availability<input v-model="draft.profile.availability" type="text" /></label>
                 </div>
@@ -429,7 +487,7 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
 
               <div v-if="activeEditorSection === 'testimonials'" class="form-section">
                 <h3>Client reviews</h3>
-                <p class="section-help">Only publish feedback and client photos you have permission to share. Add a photo path such as <code>/assets/img/reviews/client-name.jpg</code>; place the image in <code>assets/img/reviews/</code> and redeploy.</p>
+                <p class="section-help">Only publish feedback and client photos you have permission to share. Upload review photos here; publish your changes after uploading.</p>
                 <p v-if="draft.testimonials.length === 0" class="section-empty-state">No client reviews added yet. You can add reviews here whenever you receive permission to share them.</p>
                 <div v-for="(item, index) in draft.testimonials" :key="`testimonial-${index}`" class="repeat-group">
                   <div class="repeat-heading">
@@ -439,6 +497,14 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
                   <div class="form-grid two-up">
                     <label>Client name<input v-model="item.name" type="text" autocomplete="name" /></label>
                     <label>Client photo path<input v-model="item.photo" type="text" placeholder="/assets/img/reviews/client-name.jpg" /></label>
+                    <div class="image-upload-field">
+                      <span>Upload client photo</span>
+                      <img v-if="safeImage(item.photo)" class="image-upload-preview" :src="safeImage(item.photo)" :alt="`Photo preview for ${item.name || `review ${index + 1}`}`" />
+                      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" :aria-label="`Upload photo for review ${index + 1}`" @change="handleImageUpload($event, 'review', `review-${index}`, item)" />
+                      <small>JPG, PNG, WebP, or GIF. Maximum 5 MB.</small>
+                      <small v-if="imageUploads[`review-${index}`]?.busy" role="status">Uploading client photo...</small>
+                      <small v-else-if="imageUploads[`review-${index}`]?.error" class="image-upload-error" role="alert">{{ imageUploads[`review-${index}`].error }}</small>
+                    </div>
                     <label>Role<input v-model="item.role" type="text" /></label>
                     <label>Organization<input v-model="item.organization" type="text" /></label>
                     <label>Project or context<input v-model="item.project" type="text" /></label>
@@ -462,7 +528,7 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
                   type="button"
                   @click="changeEditorSection(activeSectionIndex + 1)"
                 >Next section →</button>
-                <button v-else class="button button-primary" type="submit" :disabled="busy || Boolean(parsedDraft.error)">
+                <button v-else class="button button-primary" type="submit" :disabled="busy || hasActiveImageUploads || Boolean(parsedDraft.error)">
                   {{ busy ? 'Saving...' : 'Publish changes' }} <span aria-hidden="true">↗</span>
                 </button>
               </div>

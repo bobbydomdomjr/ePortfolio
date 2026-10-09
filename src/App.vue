@@ -5,6 +5,7 @@ import { defaultContent } from './content.js'
 import { trackPortfolioEvent } from './lib/analytics.js'
 import { createContactCard } from './lib/contact-card.js'
 import { validateContent } from './lib/content-validation.js'
+import { nextReviewIndex } from './lib/reviews.js'
 import { safeImage, safeLink, supabase, supabaseConfigured } from './lib/supabase.js'
 
 const isAdmin = window.location.pathname.replace(/\/+$/, '').endsWith('/admin')
@@ -22,6 +23,8 @@ const activeSection = ref('home')
 const showBackToTop = ref(false)
 const emailCopied = ref(false)
 const contactUtilityMessage = ref('')
+const activeReviewIndex = ref(0)
+const reviewPointerStart = ref(null)
 const headlineText = computed(() => content.value.headline.replace(/[.!?]+$/, ''))
 const filters = computed(() => ['All', ...new Set(content.value.projects.map((project) => project.category).filter(Boolean))])
 const navItems = computed(() => [
@@ -32,6 +35,9 @@ const navItems = computed(() => [
   { label: 'Client reviews', id: 'reviews' },
   { label: 'Contact', id: 'contact' },
 ])
+const reviewTrackStyle = computed(() => ({
+  transform: `translateX(-${activeReviewIndex.value * 100}%)`,
+}))
 const vReveal = {
   mounted(element) {
     element.classList.add('scroll-reveal')
@@ -64,6 +70,9 @@ const visibleProjects = computed(() => {
 })
 
 watch(content, updatePageMetadata, { deep: true, immediate: true })
+watch(() => content.value.testimonials.length, (count) => {
+  activeReviewIndex.value = Math.min(activeReviewIndex.value, Math.max(0, count - 1))
+})
 
 function setTheme() {
   try {
@@ -224,6 +233,26 @@ function reviewerInitials(name) {
     .map((part) => part.charAt(0))
     .join('')
     .toUpperCase()
+}
+
+function moveReview(direction) {
+  const count = content.value.testimonials.length
+  if (count < 2) return
+  activeReviewIndex.value = nextReviewIndex(activeReviewIndex.value, direction, count)
+}
+
+function startReviewSwipe(event) {
+  if (event.pointerType === 'mouse') return
+  reviewPointerStart.value = { x: event.clientX, y: event.clientY }
+}
+
+function finishReviewSwipe(event) {
+  if (!reviewPointerStart.value) return
+  const deltaX = event.clientX - reviewPointerStart.value.x
+  const deltaY = event.clientY - reviewPointerStart.value.y
+  reviewPointerStart.value = null
+  if (Math.abs(deltaX) < 48 || Math.abs(deltaX) < Math.abs(deltaY)) return
+  moveReview(deltaX < 0 ? 1 : -1)
 }
 
 function printResume() {
@@ -534,26 +563,66 @@ onBeforeUnmount(() => {
               <p v-if="content.testimonials.length">Feedback shared with permission from people and teams I’ve worked with.</p>
               <p v-else>Client feedback will appear here once it has been shared and approved for publication.</p>
             </div>
-            <div v-if="content.testimonials.length" class="review-grid">
-              <figure
-                v-for="(review, index) in content.testimonials"
-                :key="`${review.name}-${review.organization}-${index}`"
-                v-reveal
-                data-reveal="zoom"
-                :data-reveal-delay="index * 90"
-                class="review-card"
+            <div
+              v-if="content.testimonials.length"
+              class="review-carousel"
+              role="region"
+              aria-label="Client reviews"
+              aria-roledescription="carousel"
+              @keydown.left.prevent="moveReview(-1)"
+              @keydown.right.prevent="moveReview(1)"
+            >
+              <div
+                class="review-viewport"
+                @pointerdown="startReviewSwipe"
+                @pointerup="finishReviewSwipe"
+                @pointercancel="reviewPointerStart = null"
               >
-                <div class="reviewer-photo">
-                  <img v-if="safeImage(review.photo)" :src="safeImage(review.photo)" :alt="`Photo of ${review.name}`" loading="lazy" />
-                  <span v-else aria-hidden="true">{{ reviewerInitials(review.name) }}</span>
+                <div class="review-track" :style="reviewTrackStyle" aria-live="polite">
+                  <figure
+                    v-for="(review, index) in content.testimonials"
+                    :key="`${review.name}-${review.organization}-${index}`"
+                    class="review-card"
+                    role="group"
+                    aria-roledescription="slide"
+                    :aria-label="`Review ${index + 1} of ${content.testimonials.length}`"
+                    :aria-hidden="activeReviewIndex !== index"
+                  >
+                    <span class="review-quote-mark" aria-hidden="true">“</span>
+                    <div class="review-author">
+                      <div class="reviewer-photo">
+                        <img v-if="safeImage(review.photo)" :src="safeImage(review.photo)" :alt="`Photo of ${review.name}`" loading="lazy" />
+                        <span v-else aria-hidden="true">{{ reviewerInitials(review.name) }}</span>
+                      </div>
+                      <figcaption>
+                        <strong>{{ review.name }}</strong>
+                        <span v-if="review.role || review.organization">{{ [review.role, review.organization].filter(Boolean).join(' · ') }}</span>
+                        <small v-if="review.project">{{ review.project }}</small>
+                      </figcaption>
+                    </div>
+                    <blockquote>{{ review.quote }}</blockquote>
+                  </figure>
                 </div>
-                <blockquote>{{ review.quote }}</blockquote>
-                <figcaption>
-                  <strong>{{ review.name }}</strong>
-                  <span v-if="review.role || review.organization">{{ [review.role, review.organization].filter(Boolean).join(' · ') }}</span>
-                  <small v-if="review.project">{{ review.project }}</small>
-                </figcaption>
-              </figure>
+              </div>
+              <div v-if="content.testimonials.length > 1" class="review-controls">
+                <div class="review-pagination" aria-label="Choose a client review">
+                  <button
+                    v-for="(_, index) in content.testimonials"
+                    :key="`review-dot-${index}`"
+                    type="button"
+                    class="review-pagination-dot"
+                    :class="{ 'is-active': activeReviewIndex === index }"
+                    :aria-label="`Show review ${index + 1}`"
+                    :aria-current="activeReviewIndex === index ? 'true' : undefined"
+                    @click="activeReviewIndex = index"
+                  ></button>
+                </div>
+                <span class="review-count" aria-live="polite">{{ String(activeReviewIndex + 1).padStart(2, '0') }} / {{ String(content.testimonials.length).padStart(2, '0') }}</span>
+                <div class="review-arrows">
+                  <button class="review-arrow" type="button" aria-label="Previous client review" @click="moveReview(-1)">←</button>
+                  <button class="review-arrow" type="button" aria-label="Next client review" @click="moveReview(1)">→</button>
+                </div>
+              </div>
             </div>
             <div v-else class="review-empty-state">
               <span class="review-empty-mark" aria-hidden="true">“</span>
