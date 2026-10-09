@@ -8,7 +8,7 @@ import { safeImage, safeLink, supabase, supabaseConfigured } from './lib/supabas
 
 const isAdmin = window.location.pathname.replace(/\/+$/, '').endsWith('/admin')
 const content = ref(structuredClone(defaultContent))
-const isDark = ref(localStorage.getItem('portfolio-theme') === 'dark')
+const isDark = ref(localStorage.getItem('portfolio-theme-v2') === 'dark')
 const mobileMenuOpen = ref(false)
 const activeFilter = ref('All')
 const searchTerm = ref('')
@@ -51,7 +51,7 @@ const visibleProjects = computed(() => {
 })
 
 function setTheme() {
-  localStorage.setItem('portfolio-theme', isDark.value ? 'dark' : 'light')
+  localStorage.setItem('portfolio-theme-v2', isDark.value ? 'dark' : 'light')
 }
 
 function normalizeContent(candidate) {
@@ -182,8 +182,12 @@ onBeforeUnmount(() => {
         <span class="wordmark-mark">B.</span>
         <span>{{ content.profile.name }}<small>PORTFOLIO / 2026</small></span>
       </a>
-      <button class="menu-button" type="button" :aria-expanded="mobileMenuOpen" aria-label="Toggle navigation" @click="mobileMenuOpen = !mobileMenuOpen">
-        {{ mobileMenuOpen ? 'Close' : 'Menu' }}
+      <button class="menu-button" type="button" :aria-expanded="mobileMenuOpen" :aria-label="mobileMenuOpen ? 'Close navigation' : 'Open navigation'" @click="mobileMenuOpen = !mobileMenuOpen">
+        <span class="menu-icon" :class="{ 'is-open': mobileMenuOpen }" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
       </button>
       <nav class="main-nav" :class="{ 'is-open': mobileMenuOpen }" aria-label="Main navigation">
         <a v-for="item in ['About', 'Work', 'Experience', 'Services', 'Contact']" :key="item" :href="`#${item.toLowerCase()}`" @click="mobileMenuOpen = false">{{ item }}</a>
