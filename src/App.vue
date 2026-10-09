@@ -17,6 +17,8 @@ const backendNotice = ref('')
 const contactState = ref('idle')
 const contactError = ref('')
 const scrollProgress = ref(null)
+const activeSection = ref('home')
+const showBackToTop = ref(false)
 const headlineText = computed(() => content.value.headline.replace(/[.!?]+$/, ''))
 const filters = computed(() => ['All', ...new Set(content.value.projects.map((project) => project.category).filter(Boolean))])
 const vReveal = {
@@ -112,6 +114,12 @@ let scrollFrame = 0
 function updateScrollProgress() {
   if (scrollFrame) return
   scrollFrame = window.requestAnimationFrame(() => {
+    const activationPoint = window.scrollY + window.innerHeight * 0.35
+    const sections = document.querySelectorAll('main > section[id]')
+    for (const section of sections) {
+      if (section.offsetTop <= activationPoint) activeSection.value = section.id
+    }
+    showBackToTop.value = window.scrollY > 500
     const scrollableDistance = document.documentElement.scrollHeight - window.innerHeight
     if (scrollProgress.value) {
       const progress = scrollableDistance > 0 ? window.scrollY / scrollableDistance : 0
@@ -127,7 +135,16 @@ function closeProject() {
 }
 
 function onKeydown(event) {
-  if (event.key === 'Escape') closeProject()
+  if (event.key !== 'Escape') return
+  mobileMenuOpen.value = false
+  if (selectedProject.value) closeProject()
+}
+
+function scrollToTop() {
+  window.scrollTo({
+    top: 0,
+    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+  })
 }
 
 async function submitContact(event) {
@@ -190,7 +207,13 @@ onBeforeUnmount(() => {
         </span>
       </button>
       <nav id="primary-navigation" class="main-nav" :class="{ 'is-open': mobileMenuOpen }" aria-label="Main navigation">
-        <a v-for="item in ['About', 'Work', 'Experience', 'Services', 'Contact']" :key="item" :href="`#${item.toLowerCase()}`" @click="mobileMenuOpen = false">{{ item }}</a>
+        <a
+          v-for="item in ['About', 'Work', 'Experience', 'Services', 'Contact']"
+          :key="item"
+          :href="`#${item.toLowerCase()}`"
+          :aria-current="activeSection === item.toLowerCase() ? 'location' : undefined"
+          @click="mobileMenuOpen = false"
+        >{{ item }}</a>
         <button class="theme-toggle" type="button" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'" @click="isDark = !isDark; setTheme()">
           {{ isDark ? '☼' : '◐' }}
         </button>
@@ -439,6 +462,11 @@ onBeforeUnmount(() => {
           </div>
         </section>
       </div>
+    </Transition>
+    <Transition name="back-to-top">
+      <button v-if="showBackToTop" class="back-to-top" type="button" aria-label="Back to top" @click="scrollToTop">
+        <span aria-hidden="true">↑</span>
+      </button>
     </Transition>
   </div>
 </template>
