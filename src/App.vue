@@ -24,6 +24,7 @@ const showBackToTop = ref(false)
 const emailCopied = ref(false)
 const contactUtilityMessage = ref('')
 const activeReviewIndex = ref(0)
+const selectedReviewIndex = ref(null)
 const reviewPointerStart = ref(null)
 const headlineText = computed(() => content.value.headline.replace(/[.!?]+$/, ''))
 const filters = computed(() => ['All', ...new Set(content.value.projects.map((project) => project.category).filter(Boolean))])
@@ -72,6 +73,9 @@ const visibleProjects = computed(() => {
 watch(content, updatePageMetadata, { deep: true, immediate: true })
 watch(() => content.value.testimonials.length, (count) => {
   activeReviewIndex.value = Math.min(activeReviewIndex.value, Math.max(0, count - 1))
+  if (selectedReviewIndex.value !== null && selectedReviewIndex.value >= count) {
+    selectedReviewIndex.value = null
+  }
 })
 
 function setTheme() {
@@ -239,6 +243,11 @@ function moveReview(direction) {
   const count = content.value.testimonials.length
   if (count < 2) return
   activeReviewIndex.value = nextReviewIndex(activeReviewIndex.value, direction, count)
+  selectedReviewIndex.value = null
+}
+
+function toggleReviewCard(index) {
+  selectedReviewIndex.value = selectedReviewIndex.value === index ? null : index
 }
 
 function startReviewSwipe(event) {
@@ -583,11 +592,20 @@ onBeforeUnmount(() => {
                     v-for="(review, index) in content.testimonials"
                     :key="`${review.name}-${review.organization}-${index}`"
                     class="review-card"
+                    :class="{ 'is-selected': selectedReviewIndex === index }"
                     role="group"
                     aria-roledescription="slide"
                     :aria-label="`Review ${index + 1} of ${content.testimonials.length}`"
                     :aria-hidden="activeReviewIndex !== index"
+                    :inert="activeReviewIndex !== index"
                   >
+                    <button
+                      class="review-card-toggle"
+                      type="button"
+                      :aria-label="`${selectedReviewIndex === index ? 'Unhighlight' : 'Highlight'} review from ${review.name}`"
+                      :aria-pressed="selectedReviewIndex === index"
+                      @click="toggleReviewCard(index)"
+                    ></button>
                     <span class="review-quote-mark" aria-hidden="true">“</span>
                     <div class="review-author">
                       <div class="reviewer-photo">
@@ -614,7 +632,7 @@ onBeforeUnmount(() => {
                     :class="{ 'is-active': activeReviewIndex === index }"
                     :aria-label="`Show review ${index + 1}`"
                     :aria-current="activeReviewIndex === index ? 'true' : undefined"
-                    @click="activeReviewIndex = index"
+                    @click="activeReviewIndex = index; selectedReviewIndex = null"
                   ></button>
                 </div>
                 <span class="review-count" aria-live="polite">{{ String(activeReviewIndex + 1).padStart(2, '0') }} / {{ String(content.testimonials.length).padStart(2, '0') }}</span>
@@ -647,7 +665,7 @@ onBeforeUnmount(() => {
                 <p class="contact-location">{{ content.profile.location }}</p>
                 <div class="contact-utilities">
                   <button class="button button-outline" type="button" @click="copyEmail">{{ emailCopied ? 'Email copied' : 'Copy email' }}</button>
-                  <button class="button button-quiet" type="button" @click="downloadContactCard">Save contact card <span aria-hidden="true">↓</span></button>
+                  <button class="button button-quiet save-contact-card-button" type="button" @click="downloadContactCard">Save contact card <span aria-hidden="true">↓</span></button>
                 </div>
                 <p v-if="contactUtilityMessage" class="contact-utility-message" role="status">{{ contactUtilityMessage }}</p>
               </div>
