@@ -1706,16 +1706,30 @@ img {
 }
 
 .contact-section .save-contact-card-button:hover,
-.contact-section .save-contact-card-button:focus-visible {
+.contact-section .save-contact-card-button:focus-visible,
+.contact-section .save-contact-card-button:active {
   border-color: #b9d6fb;
   background: #b9d6fb;
   color: #10233d;
 }
 
+.contact-section .save-contact-card-button:hover span,
+.contact-section .save-contact-card-button:focus-visible span,
+.contact-section .save-contact-card-button:active span {
+  color: #10233d;
+}
+
 .site[data-theme="dark"] .contact-section .save-contact-card-button:hover,
-.site[data-theme="dark"] .contact-section .save-contact-card-button:focus-visible {
+.site[data-theme="dark"] .contact-section .save-contact-card-button:focus-visible,
+.site[data-theme="dark"] .contact-section .save-contact-card-button:active {
   border-color: #ffffff;
   background: #ffffff;
+  color: #142640;
+}
+
+.site[data-theme="dark"] .contact-section .save-contact-card-button:hover span,
+.site[data-theme="dark"] .contact-section .save-contact-card-button:focus-visible span,
+.site[data-theme="dark"] .contact-section .save-contact-card-button:active span {
   color: #142640;
 }
 
