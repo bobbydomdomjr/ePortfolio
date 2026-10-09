@@ -1584,6 +1584,57 @@ img {
   margin-block: 13px 16px;
 }
 
+.editor-section-nav {
+  display: flex;
+  gap: 6px;
+  margin-top: 24px;
+  padding-bottom: 10px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+  scrollbar-width: thin;
+}
+
+.editor-section-tab {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 39px;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.editor-section-tab > span {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 8px;
+}
+
+.editor-section-tab:hover,
+.editor-section-tab.is-active {
+  border-color: var(--line);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.editor-section-tab.is-active > span {
+  color: var(--green);
+}
+
+.editor-section-count {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
 .form-editor {
   display: flex;
   flex-direction: column;
@@ -1591,6 +1642,7 @@ img {
 }
 
 .form-section {
+  min-height: 270px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1619,7 +1671,8 @@ img {
 }
 
 .form-section label,
-.repeat-group label {
+.repeat-group label,
+.skill-editor-row label {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1692,6 +1745,23 @@ img {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
+}
+
+.skill-editor-row {
+  grid-template-columns: minmax(0, 1fr) minmax(130px, 0.4fr) auto;
+}
+
+.skill-editor-row input {
+  margin-top: 8px;
+}
+
+.editor-section-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
 }
 
 .case-study-block {
@@ -2231,8 +2301,26 @@ img {
     flex-direction: column;
   }
 
-  .code-editor {
-    min-height: 440px;
+  .two-up,
+  .three-up {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .skill-editor-row {
+    grid-template-columns: minmax(0, 1fr) 96px;
+  }
+
+  .skill-editor-row .mini-button {
+    grid-column: 1 / -1;
+  }
+
+  .editor-section-controls {
+    align-items: stretch;
+  }
+
+  .editor-section-controls .button {
+    min-height: 40px;
+    padding-inline: 12px;
     font-size: 10px;
   }
 }

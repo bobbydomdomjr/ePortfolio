@@ -7,15 +7,26 @@ import { supabase, supabaseConfigured } from '../lib/supabase.js'
 const email = ref('')
 const password = ref('')
 const session = ref(null)
-const draft = ref(structuredClone(defaultContent))
+const draft = ref(prepareEditableContent(defaultContent))
 const status = ref('')
 const error = ref('')
 const busy = ref(false)
 const lastSaved = ref('')
 const fileInput = ref(null)
+const activeEditorSection = ref('profile')
+const editorSections = [
+  { id: 'profile', label: 'Profile' },
+  { id: 'social', label: 'Social links' },
+  { id: 'experience', label: 'Experience' },
+  { id: 'education', label: 'Education' },
+  { id: 'skills', label: 'Skills' },
+  { id: 'projects', label: 'Projects' },
+  { id: 'services', label: 'Services' },
+]
 let authSubscription
 
 const draftJson = computed(() => JSON.stringify(draft.value, null, 2))
+const activeSectionIndex = computed(() => editorSections.findIndex((section) => section.id === activeEditorSection.value))
 const parsedDraft = computed(() => {
   try {
     return { value: validateContent(structuredClone(draft.value)), error: '' }
@@ -23,6 +34,34 @@ const parsedDraft = computed(() => {
     return { value: null, error: parseError.message }
   }
 })
+
+function prepareEditableContent(content) {
+  const editableContent = structuredClone(content)
+  editableContent.profile.social ||= {}
+  editableContent.skills = editableContent.skills.map((skill) => {
+    if (typeof skill === 'string') return { name: skill, level: 75 }
+    return {
+      ...skill,
+      name: typeof skill.name === 'string' ? skill.name : '',
+      level: Number.isFinite(skill.level) ? skill.level : 75,
+    }
+  })
+  editableContent.projects = editableContent.projects.map((project) => ({
+    ...project,
+    caseStudy: {
+      challenge: '',
+      approach: '',
+      outcome: '',
+      ...project.caseStudy,
+    },
+  }))
+  return editableContent
+}
+
+function changeEditorSection(index) {
+  const section = editorSections[index]
+  if (section) activeEditorSection.value = section.id
+}
 
 function makeExperienceItem() {
   return { title: '', organization: '', period: '', description: '' }
@@ -33,7 +72,7 @@ function makeEducationItem() {
 }
 
 function makeSkillItem() {
-  return ''
+  return { name: '', level: 75 }
 }
 
 function makeProjectItem() {
@@ -99,11 +138,11 @@ async function loadSavedContent() {
     return
   }
   if (data) {
-    draft.value = structuredClone(data.content)
+    draft.value = prepareEditableContent(data.content)
     lastSaved.value = data.updated_at
     status.value = 'Loaded the latest published content.'
   } else {
-    draft.value = structuredClone(defaultContent)
+    draft.value = prepareEditableContent(defaultContent)
     status.value = 'Starter content loaded. Publish to create the first live version.'
   }
 }
@@ -151,7 +190,7 @@ async function importBackup(event) {
   try {
     if (file.size > 1_000_000) throw new Error('Backup file must be smaller than 1 MB.')
     const parsed = validateContent(JSON.parse(await file.text()))
-    draft.value = structuredClone(parsed)
+    draft.value = prepareEditableContent(parsed)
     status.value = 'Backup loaded. Review the draft and publish it when ready.'
     error.value = ''
   } catch (importError) {
@@ -251,7 +290,23 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
             </div>
 
             <form class="form-editor" @submit.prevent="saveContent">
-              <div class="form-section">
+              <nav class="editor-section-nav" aria-label="Portfolio editor sections">
+                <button
+                  v-for="(section, index) in editorSections"
+                  :key="section.id"
+                  class="editor-section-tab"
+                  :class="{ 'is-active': activeEditorSection === section.id }"
+                  type="button"
+                  :id="`editor-tab-${section.id}`"
+                  :aria-current="activeEditorSection === section.id ? 'step' : undefined"
+                  @click="changeEditorSection(index)"
+                >
+                  <span>{{ String(index + 1).padStart(2, '0') }}</span>{{ section.label }}
+                </button>
+              </nav>
+              <p class="editor-section-count">Section {{ activeSectionIndex + 1 }} of {{ editorSections.length }}</p>
+
+              <div v-if="activeEditorSection === 'profile'" class="form-section">
                 <h3>Profile</h3>
                 <div class="form-grid two-up">
                   <label>Name<input v-model="draft.profile.name" type="text" /></label>
@@ -267,7 +322,7 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
                 <label>About<textarea v-model="draft.about" rows="4" /></label>
               </div>
 
-              <div class="form-section">
+              <div v-if="activeEditorSection === 'social'" class="form-section">
                 <h3>Social links</h3>
                 <div class="form-grid two-up">
                   <label>LinkedIn<input v-model="draft.profile.social.linkedin" type="url" /></label>
@@ -277,7 +332,7 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
                 </div>
               </div>
 
-              <div class="form-section">
+              <div v-if="activeEditorSection === 'experience'" class="form-section">
                 <h3>Experience</h3>
                 <div v-for="(item, index) in draft.experience" :key="`experience-${index}`" class="repeat-group">
                   <div class="repeat-heading">
@@ -294,7 +349,7 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
                 <button type="button" class="button button-outline small-button" @click="addEntry(draft.experience, makeExperienceItem)">Add experience</button>
               </div>
 
-              <div class="form-section">
+              <div v-if="activeEditorSection === 'education'" class="form-section">
                 <h3>Education</h3>
                 <div v-for="(item, index) in draft.education" :key="`education-${index}`" class="repeat-group">
                   <div class="repeat-heading">
@@ -311,16 +366,17 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
                 <button type="button" class="button button-outline small-button" @click="addEntry(draft.education, makeEducationItem)">Add education</button>
               </div>
 
-              <div class="form-section">
+              <div v-if="activeEditorSection === 'skills'" class="form-section">
                 <h3>Skills</h3>
-                <div v-for="(skill, index) in draft.skills" :key="`skill-${index}`" class="repeat-inline-group">
-                  <input v-model="draft.skills[index]" type="text" placeholder="Skill name" />
+                <div v-for="(skill, index) in draft.skills" :key="`skill-${index}`" class="repeat-inline-group skill-editor-row">
+                  <label>Skill name<input v-model="skill.name" type="text" placeholder="Skill name" /></label>
+                  <label>Proficiency (0–100)<input v-model.number="skill.level" type="number" min="0" max="100" /></label>
                   <button type="button" class="mini-button" @click="removeEntry(draft.skills, index)">Remove</button>
                 </div>
                 <button type="button" class="button button-outline small-button" @click="addEntry(draft.skills, makeSkillItem)">Add skill</button>
               </div>
 
-              <div class="form-section">
+              <div v-if="activeEditorSection === 'projects'" class="form-section">
                 <h3>Projects</h3>
                 <div v-for="(item, index) in draft.projects" :key="`project-${index}`" class="repeat-group project-group">
                   <div class="repeat-heading">
@@ -348,7 +404,7 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
                 <button type="button" class="button button-outline small-button" @click="addEntry(draft.projects, makeProjectItem)">Add project</button>
               </div>
 
-              <div class="form-section">
+              <div v-if="activeEditorSection === 'services'" class="form-section">
                 <h3>Services</h3>
                 <div v-for="(item, index) in draft.services" :key="`service-${index}`" class="repeat-group">
                   <div class="repeat-heading">
@@ -364,6 +420,24 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
                 <button type="button" class="button button-outline small-button" @click="addEntry(draft.services, makeServiceItem)">Add service</button>
               </div>
 
+              <div class="editor-section-controls">
+                <button
+                  v-if="activeSectionIndex > 0"
+                  class="button button-outline"
+                  type="button"
+                  @click="changeEditorSection(activeSectionIndex - 1)"
+                >← Previous</button>
+                <span v-else></span>
+                <button
+                  v-if="activeSectionIndex < editorSections.length - 1"
+                  class="button button-outline"
+                  type="button"
+                  @click="changeEditorSection(activeSectionIndex + 1)"
+                >Next section →</button>
+                <button v-else class="button button-primary" type="submit" :disabled="busy || Boolean(parsedDraft.error)">
+                  {{ busy ? 'Saving...' : 'Publish changes' }} <span aria-hidden="true">↗</span>
+                </button>
+              </div>
               <div class="editor-footer form-footer">
                 <span v-if="parsedDraft.error" class="editor-validation invalid" role="status">Review your edits: {{ parsedDraft.error }}</span>
                 <span v-else class="editor-validation valid">Ready to publish.</span>
@@ -371,9 +445,6 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
               </div>
               <div v-if="status" class="form-feedback success" role="status">{{ status }}</div>
               <div v-if="error" class="form-feedback error" role="alert">{{ error }}</div>
-              <button class="button button-primary publish-button" type="submit" :disabled="busy || Boolean(parsedDraft.error)">
-                {{ busy ? 'Saving...' : 'Publish changes' }} <span aria-hidden="true">↗</span>
-              </button>
             </form>
           </section>
 

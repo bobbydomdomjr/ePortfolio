@@ -46,6 +46,9 @@ export function validateContent(value) {
       throw new Error(`Skill item ${index + 1} must be text or an object with a name.`)
     }
     requireText(skill.name, `Skill item ${index + 1} "name"`)
+    if (skill.level !== undefined && (!Number.isFinite(skill.level) || skill.level < 0 || skill.level > 100)) {
+      throw new Error(`Skill item ${index + 1} "level" must be a number from 0 to 100.`)
+    }
   }
 
   for (const [index, project] of value.projects.entries()) {

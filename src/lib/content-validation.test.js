@@ -7,6 +7,20 @@ test('accepts the included portfolio content', () => {
   assert.equal(validateContent(defaultContent), defaultContent)
 })
 
+test('accepts skill objects with proficiency levels and legacy skill strings', () => {
+  const content = structuredClone(defaultContent)
+  content.skills[0] = { name: 'Database administration', level: 88 }
+  content.skills[1] = 'HTML & CSS'
+  assert.equal(validateContent(content).skills[0].level, 88)
+  assert.equal(validateContent(content).skills[1], 'HTML & CSS')
+})
+
+test('rejects invalid skill proficiency levels', () => {
+  const content = structuredClone(defaultContent)
+  content.skills[0].level = 101
+  assert.throws(() => validateContent(content), /level.*number from 0 to 100/)
+})
+
 test('rejects missing collections', () => {
   const content = structuredClone(defaultContent)
   delete content.projects
