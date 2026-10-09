@@ -49,6 +49,8 @@ Create a local `.env` from `.env.example` when connecting Supabase. Never put a 
 
 The admin editor is organized into separate Profile, Social links, Experience, Education, Skills, Projects, Services, and Client reviews sections. Each section has a form for adding, editing, or removing entries; skill names and proficiency levels are edited separately. In the Profile and Client reviews sections, choose a JPG, PNG, WebP, or GIF image up to 5 MB to upload it directly to Supabase Storage. The editor shows a preview and fills in the image URL; publish changes to display the photo on the site. Only upload profile and client images you have permission to share, and confirm how each reviewer wants to be credited. Existing `/assets/img/...` paths remain supported. Reviews without a photo show the client's initials instead. The public Client reviews section is always visible, with an empty state until at least one review is published. Download/import backup still uses a JSON file. Database and image uploads are protected by Supabase policies; the browser never receives a service-role key.
 
+If an image upload reports that the bucket is missing, run `20261009010000_portfolio_image_storage.sql` in the Supabase SQL Editor and retry. If Supabase denies the upload, confirm the signed-in user has `app_metadata.role = admin`, run the same migration to install the Storage policies, then sign out and back in to refresh the session.
+
 ## Vercel contact form
 
 The contact form posts to [`api/contact.js`](./api/contact.js). Set `GMAIL_USER`, `GMAIL_APP_PASSWORD`, and optionally `CONTACT_TO` in Vercel environment settings. Use a freshly generated Gmail app password stored only in host secrets, and redeploy after changing settings.

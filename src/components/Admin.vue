@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { defaultContent } from '../content.js'
 import { cloneContent } from '../lib/content.js'
 import { validateContent } from '../lib/content-validation.js'
+import { describeImageUploadError } from '../lib/storage-errors.js'
 import { safeImage, supabase, supabaseConfigured } from '../lib/supabase.js'
 
 const email = ref('')
@@ -147,7 +148,7 @@ async function uploadImage(file, category, key, review = null) {
     status.value = 'Image uploaded. Publish changes to show it on your portfolio.'
     error.value = ''
   } catch (uploadError) {
-    imageUploads.value[key] = { busy: false, error: 'Image upload failed. Check the storage setup and try again.' }
+    imageUploads.value[key] = { busy: false, error: describeImageUploadError(uploadError) }
     console.error('Portfolio image upload failed:', uploadError)
   }
 }
