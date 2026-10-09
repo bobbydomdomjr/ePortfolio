@@ -16,8 +16,31 @@ const selectedProject = ref(null)
 const backendNotice = ref('')
 const contactState = ref('idle')
 const contactError = ref('')
+const scrollProgress = ref(null)
 const headlineText = computed(() => content.value.headline.replace(/[.!?]+$/, ''))
 const filters = computed(() => ['All', ...new Set(content.value.projects.map((project) => project.category).filter(Boolean))])
+const vReveal = {
+  mounted(element) {
+    element.classList.add('scroll-reveal')
+    element.style.setProperty('--reveal-delay', `${Math.min(Number(element.dataset.revealDelay) || 0, 480)}ms`)
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+      element.classList.add('is-visible')
+      return
+    }
+    element._scrollRevealObserver = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      element.classList.add('is-visible')
+      element._scrollRevealObserver.disconnect()
+      delete element._scrollRevealObserver
+    }, { threshold: 0.08, rootMargin: '0px 0px -9% 0px' })
+    element._scrollRevealObserver.observe(element)
+  },
+  unmounted(element) {
+    element._scrollRevealObserver?.disconnect()
+    delete element._scrollRevealObserver
+    element.style.removeProperty('--reveal-delay')
+  },
+}
 const visibleProjects = computed(() => {
   const query = searchTerm.value.trim().toLowerCase()
   return content.value.projects.filter((project) => {
@@ -84,6 +107,20 @@ function contactCta(source) {
   trackPortfolioEvent('Contact CTA clicked', { source })
 }
 
+let scrollFrame = 0
+
+function updateScrollProgress() {
+  if (scrollFrame) return
+  scrollFrame = window.requestAnimationFrame(() => {
+    const scrollableDistance = document.documentElement.scrollHeight - window.innerHeight
+    if (scrollProgress.value) {
+      const progress = scrollableDistance > 0 ? window.scrollY / scrollableDistance : 0
+      scrollProgress.value.style.transform = `scaleX(${progress})`
+    }
+    scrollFrame = 0
+  })
+}
+
 function closeProject() {
   selectedProject.value = null
   document.body.classList.remove('dialog-open')
@@ -120,10 +157,14 @@ async function submitContact(event) {
 onMounted(() => {
   if (!isAdmin) loadContent()
   window.addEventListener('keydown', onKeydown)
+  window.addEventListener('scroll', updateScrollProgress, { passive: true })
+  updateScrollProgress()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
+  window.removeEventListener('scroll', updateScrollProgress)
+  if (scrollFrame) window.cancelAnimationFrame(scrollFrame)
   document.body.classList.remove('dialog-open')
 })
 </script>
@@ -132,6 +173,9 @@ onBeforeUnmount(() => {
   <Admin v-if="isAdmin" />
   <div v-else class="site" :data-theme="isDark ? 'dark' : 'light'">
     <a class="skip-link" href="#main">Skip to content</a>
+    <div class="scroll-progress" aria-hidden="true">
+      <span ref="scrollProgress"></span>
+    </div>
 
     <header class="topbar">
       <a class="wordmark" href="#home" :aria-label="`${content.profile.name}, home`">
@@ -157,7 +201,7 @@ onBeforeUnmount(() => {
 
     <main id="main">
       <section id="home" class="hero section-shell">
-        <div class="hero-copy">
+        <div v-reveal class="hero-copy" data-reveal="left">
           <p class="eyebrow"><span class="status-dot"></span>{{ content.profile.availability }}</p>
           <h1>{{ headlineText }}<span class="accent-dot">.</span></h1>
           <p class="hero-intro">{{ content.about }}</p>
@@ -171,7 +215,7 @@ onBeforeUnmount(() => {
             <span>{{ content.profile.role }}</span>
           </div>
         </div>
-        <div class="hero-visual">
+        <div v-reveal class="hero-visual" data-reveal="right">
           <div class="hero-orbit orbit-one"></div>
           <div class="hero-orbit orbit-two"></div>
           <div class="portrait-frame">
@@ -193,7 +237,7 @@ onBeforeUnmount(() => {
 
       <section id="about" class="about-section section-shell section-space">
         <div class="section-label"><span>01</span><span>ABOUT ME</span></div>
-        <div class="about-content">
+        <div v-reveal class="about-content" data-reveal="up">
           <h2 class="section-heading">Curious by nature.<br /><span>Practical by design.</span></h2>
           <div class="about-grid">
             <p class="about-lead">{{ content.about }}</p>
@@ -210,20 +254,14 @@ onBeforeUnmount(() => {
           <div class="value-proposition">
             <p class="eyebrow">HOW I APPROACH THE WORK</p>
             <div class="value-grid">
-              <article>
-                <span>01 / OPERATIONS</span>
-                <h3>Keep services dependable.</h3>
-                <p>Careful administration, maintenance, troubleshooting, and clear handoffs.</p>
-              </article>
-              <article>
-                <span>02 / DATA</span>
-                <h3>Protect what matters.</h3>
-                <p>Respect access, integrity, and backup needs when working with systems and data.</p>
-              </article>
-              <article>
-                <span>03 / DELIVERY</span>
-                <h3>Make technology usable.</h3>
-                <p>Translate real needs into maintainable digital tools and practical support.</p>
+              <article v-for="(value, index) in [
+                { number: '01 / OPERATIONS', title: 'Keep services dependable.', description: 'Careful administration, maintenance, troubleshooting, and clear handoffs.' },
+                { number: '02 / DATA', title: 'Protect what matters.', description: 'Respect access, integrity, and backup needs when working with systems and data.' },
+                { number: '03 / DELIVERY', title: 'Make technology usable.', description: 'Translate real needs into maintainable digital tools and practical support.' },
+              ]" :key="value.number" v-reveal data-reveal="up" :data-reveal-delay="index * 100">
+                <span>{{ value.number }}</span>
+                <h3>{{ value.title }}</h3>
+                <p>{{ value.description }}</p>
               </article>
             </div>
           </div>
@@ -232,14 +270,14 @@ onBeforeUnmount(() => {
 
       <section class="skills-section section-shell section-space">
         <div class="section-label"><span>02</span><span>WHAT I BRING</span></div>
-        <div class="skills-content">
+        <div v-reveal class="skills-content" data-reveal="up">
           <div>
             <p class="eyebrow">CAPABILITIES</p>
             <h2 class="section-heading">Strong foundations<br />for <span>better outcomes.</span></h2>
             <p class="capabilities-note">A practical blend of operations, data, and digital delivery—grounded in reliability, security, and the people who depend on these systems.</p>
           </div>
           <div class="skill-list">
-            <span v-for="skill in content.skills" :key="typeof skill === 'string' ? skill : skill.name" class="skill-chip">
+            <span v-for="(skill, index) in content.skills" :key="typeof skill === 'string' ? skill : skill.name" v-reveal data-reveal="zoom" :data-reveal-delay="index * 55" class="skill-chip">
               {{ typeof skill === 'string' ? skill : skill.name }}
             </span>
           </div>
@@ -249,7 +287,7 @@ onBeforeUnmount(() => {
       <section id="work" class="work-section section-space">
         <div class="section-shell">
           <div class="section-label"><span>03</span><span>SELECTED WORK</span></div>
-          <div class="work-content">
+          <div v-reveal class="work-content" data-reveal="up">
             <div class="section-header">
               <div>
                 <p class="eyebrow">A FEW THINGS I'VE WORKED ON</p>
@@ -268,7 +306,7 @@ onBeforeUnmount(() => {
               </label>
             </div>
             <div class="project-grid">
-              <article v-for="(project, index) in visibleProjects" :key="project.id || project.title" class="project-card" :style="{ '--card-index': index }">
+              <article v-for="(project, index) in visibleProjects" :key="project.id || project.title" v-reveal class="project-card" data-reveal="clip" :data-reveal-delay="index * 80" :style="{ '--card-index': index }">
                 <button class="project-open" type="button" :aria-label="`View ${project.title}`" @click="selectProject(project)">
                   <span class="project-image" :class="`project-tone-${index % 4}`">
                     <img :src="safeImage(project.image) || '/assets/img/portfolio/portfolio-1.jpg'" :alt="project.title" loading="lazy" />
@@ -288,7 +326,7 @@ onBeforeUnmount(() => {
 
       <section id="experience" class="experience-section section-shell section-space">
         <div class="section-label"><span>04</span><span>THE JOURNEY</span></div>
-        <div class="experience-content">
+        <div v-reveal class="experience-content" data-reveal="up">
           <div class="section-header">
             <div>
               <p class="eyebrow">EXPERIENCE &amp; EDUCATION</p>
@@ -299,14 +337,14 @@ onBeforeUnmount(() => {
           <div class="journey-grid">
             <div>
               <h3 class="list-heading">Experience <span>({{ content.experience.length }})</span></h3>
-              <article v-for="(item, index) in content.experience" :key="`${item.title}-${item.period}`" class="timeline-item">
+              <article v-for="(item, index) in content.experience" :key="`${item.title}-${item.period}`" v-reveal data-reveal="left" :data-reveal-delay="index * 100" class="timeline-item">
                 <span class="timeline-dot">{{ String(index + 1).padStart(2, '0') }}</span>
                 <div><p class="timeline-period">{{ item.period }}</p><h4>{{ item.title }}</h4><p class="timeline-org">{{ item.organization }}</p><p class="timeline-description">{{ item.description }}</p></div>
               </article>
             </div>
             <div>
               <h3 class="list-heading">Education <span>({{ content.education.length }})</span></h3>
-              <article v-for="(item, index) in content.education" :key="`${item.title}-${item.period}`" class="timeline-item">
+              <article v-for="(item, index) in content.education" :key="`${item.title}-${item.period}`" v-reveal data-reveal="left" :data-reveal-delay="index * 100" class="timeline-item">
                 <span class="timeline-dot">{{ String(index + 1).padStart(2, '0') }}</span>
                 <div><p class="timeline-period">{{ item.period }}</p><h4>{{ item.title }}</h4><p class="timeline-org">{{ item.organization }}</p><p class="timeline-description">{{ item.description }}</p></div>
               </article>
@@ -318,11 +356,11 @@ onBeforeUnmount(() => {
       <section id="services" class="services-section section-space">
         <div class="section-shell">
           <div class="section-label"><span>05</span><span>HOW I CAN HELP</span></div>
-          <div class="services-content">
+          <div v-reveal class="services-content" data-reveal="up">
             <p class="eyebrow">THOUGHTFUL WORK, USEFUL RESULTS</p>
             <h2 class="section-heading">Good work starts<br />with <span>understanding.</span></h2>
             <div class="service-grid">
-              <article v-for="service in content.services" :key="service.title" class="service-card">
+              <article v-for="(service, index) in content.services" :key="service.title" v-reveal data-reveal="zoom" :data-reveal-delay="index * 75" class="service-card">
                 <span class="service-icon">{{ service.icon || '✳' }}</span>
                 <h3>{{ service.title }}</h3>
                 <p>{{ service.description }}</p>
@@ -336,7 +374,7 @@ onBeforeUnmount(() => {
       <section id="contact" class="contact-section section-space">
         <div class="section-shell">
           <div class="section-label"><span>06</span><span>LET'S CONNECT</span></div>
-          <div class="contact-content">
+          <div v-reveal class="contact-content" data-reveal="up">
             <p class="eyebrow"><span class="status-dot"></span> HAVE A PROJECT IN MIND?</p>
             <h2 class="contact-heading">Let's make<br /><span>something matter.</span></h2>
             <div class="contact-grid">
