@@ -1,6 +1,6 @@
 # Bobby Domdom Jr — ePortfolio
 
-A responsive Vue 3 portfolio built with Vite. The public site includes interactive project search and category filters, project details, a theme toggle, a printable résumé, and a contact form. `/admin` is a private, Supabase-backed content editor with sign-in, draft validation, publishing, and JSON backup/restore.
+A responsive Vue 3 portfolio built with Vite. The public site includes interactive project search and category filters, project details, a theme toggle, a printable résumé, a downloadable vCard, copy-email action, dynamic social metadata, structured data, and a contact form. `/admin` is a private, Supabase-backed content editor with sign-in, draft validation, publishing, and JSON backup/restore.
 
 ## Run locally
 
@@ -21,6 +21,7 @@ Create a local `.env` from `.env.example` when connecting Supabase. Never put a 
 - `src/components/Admin.vue` — authenticated, section-based portfolio editor.
 - `src/content.js` — starter portfolio content used when no published Supabase row is available.
 - `src/lib/` — Supabase client, safe link/image handling, analytics, and content validation.
+- `public/robots.txt` and `public/sitemap.xml` — crawler directives and the public portfolio sitemap.
 - `src/style.css` — shared visual system, responsive layouts, and reduced-motion-aware animation.
 - `api/contact.js` — server-side contact form handler; mail credentials stay in host environment variables.
 - `supabase/migrations/` — database schema and row-level security policy.
@@ -62,6 +63,8 @@ npm run preview
 ```
 
 Vercel builds the Vite app into `dist/`; `vercel.json` routes `/admin` to the Vue app and retains the server-side contact function. The build copies the existing portfolio images into the generated public directory.
+
+`vercel.json` sets basic browser security headers. The robots file and sitemap currently use `https://e-portfolio-ochre-sigma.vercel.app/`; update those URLs and the canonical link in `index.html` if you deploy to a different primary domain. The page title, social previews, and Person structured data are also updated from the published portfolio profile.
 
 Before deploying, apply the Supabase migration, configure the required Vercel environment variables, and run `npm test` and `npm run build`. Deploy a preview first, then verify the public page, `/admin` sign-in, content publishing, and `/api/contact` with valid server mail settings. The contact form responds with an explicit setup error until `GMAIL_USER` and `GMAIL_APP_PASSWORD` are configured. A successful local build does not deploy the site; push the changes and confirm the Vercel deployment succeeds.
 

@@ -1,14 +1,15 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import Admin from './components/Admin.vue'
 import { defaultContent } from './content.js'
 import { trackPortfolioEvent } from './lib/analytics.js'
+import { createContactCard } from './lib/contact-card.js'
 import { validateContent } from './lib/content-validation.js'
 import { safeImage, safeLink, supabase, supabaseConfigured } from './lib/supabase.js'
 
 const isAdmin = window.location.pathname.replace(/\/+$/, '').endsWith('/admin')
 const content = ref(structuredClone(defaultContent))
-const isDark = ref(localStorage.getItem('portfolio-theme-v2') === 'dark')
+const isDark = ref(readSavedTheme() === 'dark')
 const mobileMenuOpen = ref(false)
 const activeFilter = ref('All')
 const searchTerm = ref('')
@@ -19,6 +20,8 @@ const contactError = ref('')
 const scrollProgress = ref(null)
 const activeSection = ref('home')
 const showBackToTop = ref(false)
+const emailCopied = ref(false)
+const contactUtilityMessage = ref('')
 const headlineText = computed(() => content.value.headline.replace(/[.!?]+$/, ''))
 const filters = computed(() => ['All', ...new Set(content.value.projects.map((project) => project.category).filter(Boolean))])
 const navItems = computed(() => [
@@ -60,8 +63,112 @@ const visibleProjects = computed(() => {
   })
 })
 
+watch(content, updatePageMetadata, { deep: true, immediate: true })
+
 function setTheme() {
-  localStorage.setItem('portfolio-theme-v2', isDark.value ? 'dark' : 'light')
+  try {
+    localStorage.setItem('portfolio-theme-v2', isDark.value ? 'dark' : 'light')
+  } catch (error) {
+    console.warn('Could not save the portfolio theme preference:', error)
+  }
+}
+
+function readSavedTheme() {
+  try {
+    return localStorage.getItem('portfolio-theme-v2')
+  } catch (error) {
+    console.warn('Could not read the saved portfolio theme preference:', error)
+    return null
+  }
+}
+
+function setMeta(attribute, key, value) {
+  let element = document.head.querySelector(`meta[${attribute}="${key}"]`)
+  if (!element) {
+    element = document.createElement('meta')
+    element.setAttribute(attribute, key)
+    document.head.append(element)
+  }
+  element.setAttribute('content', value)
+}
+
+function updatePageMetadata(portfolio) {
+  if (isAdmin) {
+    document.title = `Portfolio editor | ${portfolio.profile.name}`
+    setMeta('name', 'robots', 'noindex, nofollow')
+    document.querySelector('#portfolio-person-schema')?.remove()
+    return
+  }
+
+  document.querySelector('meta[name="robots"]')?.remove()
+  const websiteUrl = safeLink(portfolio.profile.website)
+  const canonicalUrl = websiteUrl.startsWith('https://') ? websiteUrl : `${window.location.origin}/`
+  const description = portfolio.about.replace(/\s+/g, ' ').trim().slice(0, 300)
+  const imagePath = safeImage(portfolio.profile.image)
+  const imageUrl = imagePath ? new URL(imagePath, canonicalUrl).href : ''
+  const title = `${portfolio.profile.name} | ${portfolio.profile.role}`
+  document.title = title
+
+  setMeta('name', 'description', description)
+  setMeta('property', 'og:title', title)
+  setMeta('property', 'og:description', description)
+  setMeta('property', 'og:url', canonicalUrl)
+  setMeta('property', 'og:image', imageUrl)
+  setMeta('name', 'twitter:title', title)
+  setMeta('name', 'twitter:description', description)
+  setMeta('name', 'twitter:image', imageUrl)
+
+  let canonical = document.head.querySelector('link[rel="canonical"]')
+  if (!canonical) {
+    canonical = document.createElement('link')
+    canonical.rel = 'canonical'
+    document.head.append(canonical)
+  }
+  canonical.href = canonicalUrl
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: portfolio.profile.name,
+    jobTitle: portfolio.profile.role,
+    url: canonicalUrl,
+    email: portfolio.profile.email,
+    image: imageUrl,
+    address: { '@type': 'PostalAddress', addressLocality: portfolio.profile.location },
+    sameAs: Object.values(portfolio.profile.social || {}).filter((url) => /^https:\/\//i.test(url)),
+  }
+  let schemaElement = document.head.querySelector('#portfolio-person-schema')
+  if (!schemaElement) {
+    schemaElement = document.createElement('script')
+    schemaElement.id = 'portfolio-person-schema'
+    schemaElement.type = 'application/ld+json'
+    document.head.append(schemaElement)
+  }
+  schemaElement.textContent = JSON.stringify(schema)
+}
+
+function downloadContactCard() {
+  const profile = content.value.profile
+  const file = new Blob([createContactCard(profile)], { type: 'text/vcard;charset=utf-8' })
+  const url = URL.createObjectURL(file)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'bobby-domdom-jr.vcf'
+  link.click()
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+  trackPortfolioEvent('Contact card downloaded')
+}
+
+async function copyEmail() {
+  try {
+    await navigator.clipboard.writeText(content.value.profile.email)
+    emailCopied.value = true
+    contactUtilityMessage.value = 'Email address copied.'
+    window.setTimeout(() => { emailCopied.value = false }, 2200)
+  } catch (error) {
+    contactUtilityMessage.value = 'Copy is unavailable in this browser. Select the email address above to copy it.'
+    console.warn('Could not copy the portfolio email address:', error)
+  }
 }
 
 function normalizeContent(candidate) {
@@ -449,6 +556,11 @@ onBeforeUnmount(() => {
                 <a class="contact-email" :href="safeLink(`mailto:${content.profile.email}`)" @click="trackPortfolioEvent('Email contact clicked')">{{ content.profile.email }} <span aria-hidden="true">↗</span></a>
                 <a v-if="safeLink(`tel:${content.profile.phone}`)" class="contact-phone" :href="safeLink(`tel:${content.profile.phone}`)">{{ content.profile.phone }}</a>
                 <p class="contact-location">{{ content.profile.location }}</p>
+                <div class="contact-utilities">
+                  <button class="button button-outline" type="button" @click="copyEmail">{{ emailCopied ? 'Email copied' : 'Copy email' }}</button>
+                  <button class="button button-quiet" type="button" @click="downloadContactCard">Save contact card <span aria-hidden="true">↓</span></button>
+                </div>
+                <p v-if="contactUtilityMessage" class="contact-utility-message" role="status">{{ contactUtilityMessage }}</p>
               </div>
               <form class="contact-form" @submit.prevent="submitContact">
                 <div class="form-row">

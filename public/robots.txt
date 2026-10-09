@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://e-portfolio-ochre-sigma.vercel.app/sitemap.xml

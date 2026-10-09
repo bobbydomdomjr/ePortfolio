@@ -1292,6 +1292,26 @@ img {
   text-transform: uppercase;
 }
 
+.contact-utilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.contact-utilities .button {
+  min-height: 38px;
+  padding-inline: 12px;
+  font-size: 10px;
+}
+
+.contact-utility-message {
+  min-height: 1.5em;
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+
 .contact-form,
 .admin-form {
   display: flex;
