@@ -25,6 +25,22 @@ test('rejects malformed tags', () => {
   assert.throws(() => validateContent(content), /"tags" must be a list/)
 })
 
+test('preserves optional, structured project case studies', () => {
+  const content = structuredClone(defaultContent)
+  content.projects[0].caseStudy = {
+    challenge: 'Reduce repeated support steps.',
+    approach: 'Simplify the core task flow.',
+    outcome: 'A clearer prototype for user feedback.',
+  }
+  assert.equal(validateContent(content).projects[0].caseStudy.outcome, 'A clearer prototype for user feedback.')
+})
+
+test('rejects malformed optional case studies', () => {
+  const content = structuredClone(defaultContent)
+  content.projects[0].caseStudy = 'not an object'
+  assert.throws(() => validateContent(content), /"caseStudy" must be an object/)
+})
+
 test('rejects oversized portfolio documents', () => {
   const content = structuredClone(defaultContent)
   content.about = 'a'.repeat(250_001)

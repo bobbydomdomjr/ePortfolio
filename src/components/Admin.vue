@@ -213,6 +213,13 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
           </section>
           <aside class="editor-sidebar">
             <section class="admin-card">
+              <p class="eyebrow">PORTFOLIO REACH</p>
+              <h2>Know what resonates.</h2>
+              <p>Enable Web Analytics in your Vercel project, then deploy. The Analytics dashboard shows aggregate visits, referrers, and top pages—not the identity of individual visitors.</p>
+              <a class="text-link" href="https://vercel.com/dashboard" target="_blank" rel="noopener noreferrer">Open Vercel dashboard <span aria-hidden="true">↗</span></a>
+              <p>Engagement events such as project opens and contact clicks require Vercel Pro or Enterprise. Views and visits are available separately in Web Analytics.</p>
+            </section>
+            <section class="admin-card">
               <p class="eyebrow">A SAFE WORKFLOW</p>
               <h2>Draft, review, publish.</h2>
               <ol class="workflow-list">
@@ -225,6 +232,7 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
             <section class="admin-card">
               <p class="eyebrow">IMAGE PATHS</p>
               <p>Use an existing image path, for example <code>/assets/img/profile.jpeg</code> or <code>/assets/img/portfolio/nexus-1.png</code>. External project links must start with <code>https://</code>.</p>
+              <p>For a stronger project story, fill in a project's <code>caseStudy.challenge</code>, <code>caseStudy.approach</code>, and <code>caseStudy.outcome</code>. Share only accurate outcomes you are allowed to disclose.</p>
             </section>
           </aside>
         </div>

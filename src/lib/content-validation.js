@@ -52,6 +52,16 @@ export function validateContent(value) {
     if (project.tags !== undefined && (!Array.isArray(project.tags) || project.tags.some((tag) => typeof tag !== 'string'))) {
       throw new Error(`Project item ${index + 1} "tags" must be a list of text values.`)
     }
+    if (project.caseStudy !== undefined) {
+      if (!project.caseStudy || typeof project.caseStudy !== 'object' || Array.isArray(project.caseStudy)) {
+        throw new Error(`Project item ${index + 1} "caseStudy" must be an object.`)
+      }
+      for (const field of ['challenge', 'approach', 'outcome']) {
+        if (project.caseStudy[field] !== undefined) {
+          requireText(project.caseStudy[field], `Project item ${index + 1} case study "${field}"`)
+        }
+      }
+    }
   }
 
   return value

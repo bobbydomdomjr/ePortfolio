@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import Admin from './components/Admin.vue'
 import { defaultContent } from './content.js'
+import { trackPortfolioEvent } from './lib/analytics.js'
 import { validateContent } from './lib/content-validation.js'
 import { safeImage, safeLink, supabase, supabaseConfigured } from './lib/supabase.js'
 
@@ -15,6 +16,7 @@ const selectedProject = ref(null)
 const backendNotice = ref('')
 const contactState = ref('idle')
 const contactError = ref('')
+const headlineText = computed(() => content.value.headline.replace(/[.!?]+$/, ''))
 const filters = computed(() => ['All', ...new Set(content.value.projects.map((project) => project.category).filter(Boolean))])
 const visibleProjects = computed(() => {
   const query = searchTerm.value.trim().toLowerCase()
@@ -61,12 +63,25 @@ async function loadContent() {
 }
 
 function selectProject(project) {
+  trackPortfolioEvent('Project opened', { category: String(project.category || 'Other') })
   selectedProject.value = project
   document.body.classList.add('dialog-open')
 }
 
+function caseStudyEntries(project) {
+  const labels = { challenge: 'Challenge', approach: 'Approach', outcome: 'Outcome' }
+  return Object.entries(labels)
+    .map(([key, label]) => ({ label, text: project.caseStudy?.[key] }))
+    .filter((entry) => typeof entry.text === 'string' && entry.text.trim())
+}
+
 function printResume() {
+  trackPortfolioEvent('Résumé PDF requested')
   window.print()
+}
+
+function contactCta(source) {
+  trackPortfolioEvent('Contact CTA clicked', { source })
 }
 
 function closeProject() {
@@ -93,6 +108,7 @@ async function submitContact(event) {
     const message = (await response.text()).trim()
     if (!response.ok) throw new Error(message || `Message could not be sent (${response.status}).`)
     contactState.value = 'sent'
+    trackPortfolioEvent('Contact form submitted')
     form.reset()
   } catch (error) {
     contactState.value = 'error'
@@ -130,7 +146,7 @@ onBeforeUnmount(() => {
         <button class="theme-toggle" type="button" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'" @click="isDark = !isDark; setTheme()">
           {{ isDark ? '☼' : '◐' }}
         </button>
-        <a class="nav-cta" href="#contact" @click="mobileMenuOpen = false">Let's talk <span aria-hidden="true">↗</span></a>
+        <a class="nav-cta" href="#contact" @click="mobileMenuOpen = false; contactCta('header')">Let's talk <span aria-hidden="true">↗</span></a>
       </nav>
     </header>
 
@@ -143,11 +159,11 @@ onBeforeUnmount(() => {
       <section id="home" class="hero section-shell">
         <div class="hero-copy">
           <p class="eyebrow"><span class="status-dot"></span>{{ content.profile.availability }}</p>
-          <h1>{{ content.headline }}<span class="accent-dot">.</span></h1>
+          <h1>{{ headlineText }}<span class="accent-dot">.</span></h1>
           <p class="hero-intro">{{ content.about }}</p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#work">Explore my work <span aria-hidden="true">↘</span></a>
-            <a class="button button-quiet" href="#contact">Get in touch <span aria-hidden="true">↗</span></a>
+            <a class="button button-primary" href="#work">Explore selected work <span aria-hidden="true">↘</span></a>
+            <a v-if="safeLink(content.profile.social.linkedin)" class="button button-quiet" :href="safeLink(content.profile.social.linkedin)" target="_blank" rel="noopener noreferrer" @click="trackPortfolioEvent('LinkedIn profile clicked')">Connect on LinkedIn <span aria-hidden="true">↗</span></a>
           </div>
           <div class="hero-meta">
             <span>{{ content.profile.location }}</span>
@@ -168,6 +184,13 @@ onBeforeUnmount(() => {
         <a class="scroll-cue" href="#about"><span>Scroll to explore</span><span aria-hidden="true">↓</span></a>
       </section>
 
+      <header id="resume-print-header" class="resume-print-header" aria-hidden="true">
+        <h1>{{ content.profile.name }}</h1>
+        <p>{{ content.profile.role }}</p>
+        <p>{{ content.profile.location }} · {{ content.profile.email }}<span v-if="content.profile.phone"> · {{ content.profile.phone }}</span></p>
+        <a v-if="safeLink(content.profile.social.linkedin)" :href="safeLink(content.profile.social.linkedin)">{{ content.profile.social.linkedin }}</a>
+      </header>
+
       <section id="about" class="about-section section-shell section-space">
         <div class="section-label"><span>01</span><span>ABOUT ME</span></div>
         <div class="about-content">
@@ -175,14 +198,34 @@ onBeforeUnmount(() => {
           <div class="about-grid">
             <p class="about-lead">{{ content.about }}</p>
             <div class="about-side">
-              <p>My experience spans database administration, IT operations, and the craft of creating clear, welcoming web experiences. I bring a hands-on mindset to every problem—listen first, then build something useful.</p>
-              <a v-if="safeLink(content.profile.website)" class="text-link" :href="safeLink(content.profile.website)" target="_blank" rel="noopener noreferrer">View my website <span aria-hidden="true">↗</span></a>
+              <p>For organizations, dependable technology means fewer surprises and more time focused on the work that matters. I value secure foundations, careful troubleshooting, and communicating technical decisions in a way people can act on.</p>
+              <a v-if="safeLink(content.profile.website)" class="text-link" :href="safeLink(content.profile.website)" target="_blank" rel="noopener noreferrer" @click="trackPortfolioEvent('Website link clicked')">View my website <span aria-hidden="true">↗</span></a>
             </div>
           </div>
           <div class="fact-row">
-            <div><strong>BSIS</strong><span>Bicol University graduate</span></div>
-            <div><strong>IT + Web</strong><span>Technology with a human touch</span></div>
-            <div><strong>Philippines</strong><span>{{ content.profile.location }}</span></div>
+            <div><strong>Reliable</strong><span>Systems people can depend on</span></div>
+            <div><strong>Secure</strong><span>Responsible data practices</span></div>
+            <div><strong>People-first</strong><span>Technology that serves its users</span></div>
+          </div>
+          <div class="value-proposition">
+            <p class="eyebrow">HOW I APPROACH THE WORK</p>
+            <div class="value-grid">
+              <article>
+                <span>01 / OPERATIONS</span>
+                <h3>Keep services dependable.</h3>
+                <p>Careful administration, maintenance, troubleshooting, and clear handoffs.</p>
+              </article>
+              <article>
+                <span>02 / DATA</span>
+                <h3>Protect what matters.</h3>
+                <p>Respect access, integrity, and backup needs when working with systems and data.</p>
+              </article>
+              <article>
+                <span>03 / DELIVERY</span>
+                <h3>Make technology usable.</h3>
+                <p>Translate real needs into maintainable digital tools and practical support.</p>
+              </article>
+            </div>
           </div>
         </div>
       </section>
@@ -190,7 +233,11 @@ onBeforeUnmount(() => {
       <section class="skills-section section-shell section-space">
         <div class="section-label"><span>02</span><span>WHAT I BRING</span></div>
         <div class="skills-content">
-          <h2 class="section-heading">A toolkit built<br />to <span>solve problems.</span></h2>
+          <div>
+            <p class="eyebrow">CAPABILITIES</p>
+            <h2 class="section-heading">Strong foundations<br />for <span>better outcomes.</span></h2>
+            <p class="capabilities-note">A practical blend of operations, data, and digital delivery—grounded in reliability, security, and the people who depend on these systems.</p>
+          </div>
           <div class="skill-list">
             <span v-for="skill in content.skills" :key="typeof skill === 'string' ? skill : skill.name" class="skill-chip">
               {{ typeof skill === 'string' ? skill : skill.name }}
@@ -247,7 +294,7 @@ onBeforeUnmount(() => {
               <p class="eyebrow">EXPERIENCE &amp; EDUCATION</p>
               <h2 class="section-heading">Always learning.<br /><span>Always building.</span></h2>
             </div>
-            <button class="button button-outline print-button" type="button" @click="printResume">Print this résumé <span aria-hidden="true">↗</span></button>
+            <button class="button button-outline print-button" type="button" @click="printResume">Save résumé as PDF <span aria-hidden="true">↗</span></button>
           </div>
           <div class="journey-grid">
             <div>
@@ -294,8 +341,8 @@ onBeforeUnmount(() => {
             <h2 class="contact-heading">Let's make<br /><span>something matter.</span></h2>
             <div class="contact-grid">
               <div class="contact-info">
-                <p>Have an idea, a tricky tech problem, or just want to say hello? I'd love to hear from you.</p>
-                <a class="contact-email" :href="safeLink(`mailto:${content.profile.email}`)">{{ content.profile.email }} <span aria-hidden="true">↗</span></a>
+                <p>Looking for someone who can bridge databases, IT operations, and digital delivery? I welcome conversations about meaningful technology roles and projects.</p>
+                <a class="contact-email" :href="safeLink(`mailto:${content.profile.email}`)" @click="trackPortfolioEvent('Email contact clicked')">{{ content.profile.email }} <span aria-hidden="true">↗</span></a>
                 <a v-if="safeLink(`tel:${content.profile.phone}`)" class="contact-phone" :href="safeLink(`tel:${content.profile.phone}`)">{{ content.profile.phone }}</a>
                 <p class="contact-location">{{ content.profile.location }}</p>
               </div>
@@ -323,10 +370,11 @@ onBeforeUnmount(() => {
         <a class="wordmark footer-mark" href="#home"><span class="wordmark-mark">B.</span><span>{{ content.profile.name }}<small>MADE WITH INTENTION</small></span></a>
         <p>© {{ new Date().getFullYear() }} {{ content.profile.name }}. Built with care.</p>
         <div class="footer-links">
-          <a v-for="(url, network) in content.profile.social" v-show="safeLink(url)" :key="network" :href="safeLink(url)" target="_blank" rel="noopener noreferrer">{{ network }}</a>
+          <a v-for="(url, network) in content.profile.social" v-show="safeLink(url)" :key="network" :href="safeLink(url)" target="_blank" rel="noopener noreferrer" @click="network === 'linkedin' && trackPortfolioEvent('LinkedIn profile clicked')">{{ network }}</a>
           <a href="/admin" aria-label="Open the portfolio editor">Editor ↗</a>
         </div>
       </div>
+      <p class="analytics-note">Site analytics measure aggregate visits and interactions; they do not tell me who an individual visitor is.</p>
     </footer>
 
     <Transition name="dialog">
@@ -338,6 +386,12 @@ onBeforeUnmount(() => {
             <p class="eyebrow">{{ selectedProject.category }} <span aria-hidden="true">·</span> {{ selectedProject.year }}</p>
             <h2>{{ selectedProject.title }}</h2>
             <p>{{ selectedProject.description }}</p>
+            <dl v-if="caseStudyEntries(selectedProject).length" class="case-study-list">
+              <div v-for="entry in caseStudyEntries(selectedProject)" :key="entry.label">
+                <dt>{{ entry.label }}</dt>
+                <dd>{{ entry.text }}</dd>
+              </div>
+            </dl>
             <div class="dialog-tags"><span v-for="tag in selectedProject.tags || []" :key="tag">{{ tag }}</span></div>
             <a v-if="safeLink(selectedProject.link)" class="text-link" :href="safeLink(selectedProject.link)" target="_blank" rel="noopener noreferrer">Visit project <span aria-hidden="true">↗</span></a>
           </div>

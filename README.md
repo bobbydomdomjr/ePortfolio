@@ -49,7 +49,16 @@ npm run build
 npm run preview
 ```
 
-Vercel builds the Vite app into `dist/`; `vercel.json` routes `/admin` to the Vue app and retains the server-side contact function. The build copies the existing portfolio images into the generated public directory. Enable Vercel Web Analytics from the project dashboard if you want deployment analytics.
+Vercel builds the Vite app into `dist/`; `vercel.json` routes `/admin` to the Vue app and retains the server-side contact function. The build copies the existing portfolio images into the generated public directory.
+
+## Visitor analytics and professional outreach
+
+1. In the Vercel dashboard, open this project and choose **Analytics → Enable**.
+2. Redeploy the site. Web Analytics records aggregate page views, visits, referrers, and popular pages; open **Analytics** in Vercel later to review the results.
+3. The portfolio also sends interaction events for opened projects, résumé requests, contact clicks, and successful contact submissions. Events contain no form contents, names, or email addresses. Custom events require Vercel Pro or Enterprise and can be reviewed in the Web Analytics dashboard. The admin editor itself is excluded from analytics.
+4. To present your work to a specific hiring leader, share the public portfolio or your LinkedIn profile directly. Analytics can show overall traffic and engagement; it cannot reveal that a particular person or CEO viewed the page. Use a direct conversation or a reply to confirm interest—do not rely on visitor-identification tools.
+
+The portfolio is positioned for hiring leaders around dependable systems, responsible data practices, and user-focused digital delivery. Replace the illustrative project entries in the admin editor with real work samples, your contribution, the business context, and verified outcomes you are permitted to share. Each project supports optional `caseStudy.challenge`, `caseStudy.approach`, and `caseStudy.outcome` fields. Do not invent metrics or publish confidential employer information. **Save résumé as PDF** opens the browser print dialog; select **Save as PDF**.
 
 ## Security
 

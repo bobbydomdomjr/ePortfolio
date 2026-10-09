@@ -601,6 +601,45 @@ img {
   font-size: 11px;
 }
 
+.value-proposition {
+  margin-top: 45px;
+  padding-top: 23px;
+  border-top: 1px solid var(--line);
+}
+
+.value-proposition > .eyebrow {
+  margin: 0 0 18px;
+}
+
+.value-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+.value-grid article > span {
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+
+.value-grid h3 {
+  margin: 11px 0 7px;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+.value-grid p {
+  max-width: 250px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
 .skills-section {
   background: var(--paper-raised);
 }
@@ -614,6 +653,14 @@ img {
 
 .skills-content .section-heading {
   flex: 0 0 auto;
+}
+
+.capabilities-note {
+  max-width: 390px;
+  margin: 17px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
 }
 
 .skill-list {
@@ -1123,6 +1170,17 @@ img {
   transition: color 160ms ease;
 }
 
+.analytics-note {
+  width: min(1180px, calc(100% - 88px));
+  margin: 14px auto 0;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.resume-print-header {
+  display: none;
+}
+
 .project-dialog-backdrop {
   position: fixed;
   z-index: 100;
@@ -1192,6 +1250,33 @@ img {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.85;
+}
+
+.case-study-list {
+  display: grid;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.case-study-list > div {
+  display: grid;
+  grid-template-columns: 82px 1fr;
+  gap: 12px;
+}
+
+.case-study-list dt {
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.case-study-list dd {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.65;
 }
 
 .dialog-tags {
@@ -1491,6 +1576,11 @@ img {
     gap: 16px;
   }
 
+  .value-grid {
+    grid-template-columns: 1fr;
+    gap: 19px;
+  }
+
   .skills-content {
     align-items: flex-start;
     flex-direction: column;
@@ -1758,6 +1848,12 @@ img {
     flex-direction: column;
   }
 
+  .analytics-note {
+    width: calc(100% - 38px);
+    margin-top: 13px;
+    line-height: 1.6;
+  }
+
   .footer-inner > p {
     margin: 0;
   }
@@ -1779,6 +1875,11 @@ img {
 
   .dialog-content {
     padding: 25px;
+  }
+
+  .case-study-list > div {
+    grid-template-columns: 70px 1fr;
+    gap: 8px;
   }
 
   .admin-topbar {
@@ -1843,6 +1944,11 @@ img {
 }
 
 @media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
   .topbar,
   .backend-notice,
   .hero-visual,
@@ -1855,6 +1961,30 @@ img {
   .section-label,
   .print-button {
     display: none !important;
+  }
+
+  .resume-print-header {
+    display: block;
+    padding: 8px 0 14px;
+    border-bottom: 2px solid #405b45;
+  }
+
+  .resume-print-header h1 {
+    margin: 0;
+    color: #1b241d;
+    font-family: var(--display);
+    font-size: 27px;
+  }
+
+  .resume-print-header p {
+    margin: 4px 0 0;
+    color: #465048;
+    font-size: 10px;
+  }
+
+  .resume-print-header a {
+    color: #334d39;
+    font-size: 9px;
   }
 
   .site,
@@ -1872,28 +2002,109 @@ img {
     width: 100%;
   }
 
-  .hero {
-    min-height: auto;
-    padding: 20px 0;
+  .hero,
+  .about-side,
+  .fact-row,
+  .value-proposition {
+    display: none !important;
   }
 
-  .hero h1 {
-    font-size: 40px;
+  .about-content > .section-heading {
+    font-size: 23px;
+  }
+
+  .about-grid {
+    display: block;
+    margin-top: 10px;
+  }
+
+  .about-lead,
+  .timeline-description {
+    font-size: 10px;
+    line-height: 1.55;
+  }
+
+  .skills-content {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .skills-content .eyebrow {
+    display: none;
+  }
+
+  .skills-content .section-heading {
+    font-size: 21px;
+  }
+
+  .capabilities-note {
+    display: none;
+  }
+
+  .skill-list {
+    justify-content: flex-start;
+    gap: 4px;
+  }
+
+  .skill-chip {
+    padding: 4px 7px;
+    font-size: 8px;
+  }
+
+  .experience-content .section-header {
+    margin-bottom: 16px;
+  }
+
+  .experience-content .eyebrow {
+    display: none;
+  }
+
+  .experience-content .section-heading {
+    font-size: 21px;
+  }
+
+  .journey-grid {
+    gap: 18px;
+  }
+
+  .timeline-item {
+    grid-template-columns: 22px 1fr;
+    gap: 8px;
+    padding-bottom: 12px;
+    break-inside: avoid;
+  }
+
+  .timeline-dot {
+    width: 20px;
+    height: 20px;
+    font-size: 7px;
+  }
+
+  .list-heading {
+    margin-bottom: 12px;
+    padding-bottom: 7px;
+    font-size: 14px;
+  }
+
+  .timeline-period {
+    margin-bottom: 4px;
+    font-size: 8px;
+  }
+
+  .timeline-item h4 {
+    font-size: 11px;
+  }
+
+  .timeline-org {
+    margin-top: 3px;
+    font-size: 9px;
   }
 
   .about-section,
   .skills-section,
   .experience-section {
-    display: block;
-    padding: 20px 0;
-  }
-
-  .journey-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-
-  .timeline-item {
+    padding-block: 13px;
     break-inside: avoid;
   }
 }
