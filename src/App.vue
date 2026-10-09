@@ -645,7 +645,6 @@ onBeforeUnmount(() => {
             <div v-else class="review-empty-state">
               <span class="review-empty-mark" aria-hidden="true">“</span>
               <p>No client reviews have been published yet.</p>
-              <a class="text-link" href="/admin">Manage reviews in the portfolio editor <span aria-hidden="true">↗</span></a>
             </div>
           </div>
         </div>
