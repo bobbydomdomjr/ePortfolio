@@ -1236,6 +1236,37 @@ img {
   font-size: 9px;
 }
 
+.review-empty-state {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 17px;
+  padding: 22px 24px;
+  border: 1px dashed var(--line);
+  background: var(--paper-raised);
+}
+
+.review-empty-mark {
+  grid-row: span 2;
+  color: var(--green);
+  font-family: var(--display);
+  font-size: 42px;
+  line-height: 1;
+}
+
+.review-empty-state p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.review-empty-state .text-link {
+  width: fit-content;
+  margin-top: 5px;
+  font-size: 10px;
+}
+
 .contact-section {
   border-top: 0;
   background: var(--mint);
@@ -2303,6 +2334,10 @@ img {
 
   .review-card blockquote {
     font-size: 15px;
+  }
+
+  .review-empty-state {
+    padding: 18px;
   }
 
   .service-grid {

@@ -29,7 +29,7 @@ const navItems = computed(() => [
   { label: 'Work', id: 'work' },
   { label: 'Experience', id: 'experience' },
   { label: 'Services', id: 'services' },
-  ...(content.value.testimonials.length ? [{ label: 'Client reviews', id: 'reviews' }] : []),
+  { label: 'Client reviews', id: 'reviews' },
   { label: 'Contact', id: 'contact' },
 ])
 const vReveal = {
@@ -514,16 +514,17 @@ onBeforeUnmount(() => {
         </div>
       </section>
 
-      <section v-if="content.testimonials.length" id="reviews" class="reviews-section section-space">
+      <section id="reviews" class="reviews-section section-space">
         <div class="section-shell">
           <div class="section-label"><span>06</span><span>CLIENT REVIEWS</span></div>
           <div v-reveal class="reviews-content" data-reveal="up">
             <p class="eyebrow">TRUST BUILT THROUGH THE WORK</p>
             <div class="section-header reviews-header">
               <h2 class="section-heading">The experience<br /><span>matters as much as the result.</span></h2>
-              <p>Feedback shared with permission from people and teams I’ve worked with.</p>
+              <p v-if="content.testimonials.length">Feedback shared with permission from people and teams I’ve worked with.</p>
+              <p v-else>Client feedback will appear here once it has been shared and approved for publication.</p>
             </div>
-            <div class="review-grid">
+            <div v-if="content.testimonials.length" class="review-grid">
               <figure
                 v-for="(review, index) in content.testimonials"
                 :key="`${review.name}-${review.organization}-${index}`"
@@ -540,13 +541,18 @@ onBeforeUnmount(() => {
                 </figcaption>
               </figure>
             </div>
+            <div v-else class="review-empty-state">
+              <span class="review-empty-mark" aria-hidden="true">“</span>
+              <p>No client reviews have been published yet.</p>
+              <a class="text-link" href="/admin">Manage reviews in the portfolio editor <span aria-hidden="true">↗</span></a>
+            </div>
           </div>
         </div>
       </section>
 
       <section id="contact" class="contact-section section-space">
         <div class="section-shell">
-          <div class="section-label"><span>{{ content.testimonials.length ? '07' : '06' }}</span><span>LET'S CONNECT</span></div>
+          <div class="section-label"><span>07</span><span>LET'S CONNECT</span></div>
           <div v-reveal class="contact-content" data-reveal="up">
             <p class="eyebrow"><span class="status-dot"></span> HAVE A PROJECT IN MIND?</p>
             <h2 class="contact-heading">Let's make<br /><span>something matter.</span></h2>
