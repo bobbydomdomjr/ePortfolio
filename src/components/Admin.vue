@@ -7,7 +7,7 @@ import { supabase, supabaseConfigured } from '../lib/supabase.js'
 const email = ref('')
 const password = ref('')
 const session = ref(null)
-const draft = ref(JSON.stringify(defaultContent, null, 2))
+const draft = ref(structuredClone(defaultContent))
 const status = ref('')
 const error = ref('')
 const busy = ref(false)
@@ -15,13 +15,52 @@ const lastSaved = ref('')
 const fileInput = ref(null)
 let authSubscription
 
+const draftJson = computed(() => JSON.stringify(draft.value, null, 2))
 const parsedDraft = computed(() => {
   try {
-    return { value: JSON.parse(draft.value), error: '' }
+    return { value: validateContent(structuredClone(draft.value)), error: '' }
   } catch (parseError) {
     return { value: null, error: parseError.message }
   }
 })
+
+function makeExperienceItem() {
+  return { title: '', organization: '', period: '', description: '' }
+}
+
+function makeEducationItem() {
+  return { title: '', organization: '', period: '', description: '' }
+}
+
+function makeSkillItem() {
+  return ''
+}
+
+function makeProjectItem() {
+  return {
+    id: '',
+    title: '',
+    category: 'Web',
+    year: new Date().getFullYear(),
+    image: '/assets/img/portfolio/portfolio-1.jpg',
+    description: '',
+    tags: [],
+    caseStudy: { challenge: '', approach: '', outcome: '' },
+    link: '',
+  }
+}
+
+function makeServiceItem() {
+  return { title: '', description: '', icon: '01' }
+}
+
+function addEntry(list, factory) {
+  list.push(factory())
+}
+
+function removeEntry(list, index) {
+  list.splice(index, 1)
+}
 
 async function signIn() {
   if (!supabase) return
@@ -60,22 +99,26 @@ async function loadSavedContent() {
     return
   }
   if (data) {
-    draft.value = JSON.stringify(data.content, null, 2)
+    draft.value = structuredClone(data.content)
     lastSaved.value = data.updated_at
     status.value = 'Loaded the latest published content.'
   } else {
-    draft.value = JSON.stringify(defaultContent, null, 2)
+    draft.value = structuredClone(defaultContent)
     status.value = 'Starter content loaded. Publish to create the first live version.'
   }
 }
 
 async function saveContent() {
   if (!supabase || !session.value) return
+  if (parsedDraft.value.error) {
+    error.value = `Fix the form before saving: ${parsedDraft.value.error}`
+    return
+  }
   busy.value = true
   error.value = ''
   status.value = ''
   try {
-    const content = validateContent(JSON.parse(draft.value))
+    const content = validateContent(structuredClone(draft.value))
     const updatedAt = new Date().toISOString()
     const { error: saveError } = await supabase.from('portfolio_content').upsert(
       { id: 'main', content, updated_at: updatedAt },
@@ -85,7 +128,7 @@ async function saveContent() {
     lastSaved.value = updatedAt
     status.value = 'Published. Your public portfolio now shows these changes.'
   } catch (saveError) {
-    error.value = saveError instanceof SyntaxError ? `Fix the JSON before saving: ${saveError.message}` : saveError.message || 'Could not publish changes.'
+    error.value = saveError.message || 'Could not publish changes.'
     console.error('Portfolio content could not be published:', saveError)
   } finally {
     busy.value = false
@@ -93,7 +136,7 @@ async function saveContent() {
 }
 
 function exportBackup() {
-  const blob = new Blob([draft.value], { type: 'application/json' })
+  const blob = new Blob([draftJson.value], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
@@ -108,13 +151,21 @@ async function importBackup(event) {
   try {
     if (file.size > 1_000_000) throw new Error('Backup file must be smaller than 1 MB.')
     const parsed = validateContent(JSON.parse(await file.text()))
-    draft.value = JSON.stringify(parsed, null, 2)
+    draft.value = structuredClone(parsed)
     status.value = 'Backup loaded. Review the draft and publish it when ready.'
     error.value = ''
   } catch (importError) {
     error.value = importError instanceof SyntaxError ? `That file is not valid JSON: ${importError.message}` : importError.message
   }
   event.target.value = ''
+}
+
+function updateTagList(list, rawText) {
+  const nextTags = rawText
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+  list.splice(0, list.length, ...nextTags)
 }
 
 async function signOut() {
@@ -183,34 +234,149 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
           <div>
             <p class="eyebrow"><span class="status-dot"></span> SIGNED IN AS {{ session.user.email }}</p>
             <h1>Make it <span>yours.</span></h1>
-            <p>Update your portfolio content, then publish the new version. The public site updates as soon as it reloads.</p>
+            <p>Update your portfolio content with a form, then publish the new version. The public site updates when it reloads.</p>
           </div>
           <a class="button button-quiet" href="/" target="_blank" rel="noopener noreferrer">Preview portfolio ↗</a>
         </div>
+
         <div class="editor-layout">
           <section class="admin-card editor-card">
             <div class="editor-toolbar">
-              <div><p class="eyebrow">CONTENT DOCUMENT</p><h2>Portfolio data</h2></div>
+              <div><p class="eyebrow">PORTFOLIO CONTENT</p><h2>Edit details</h2></div>
               <div class="editor-actions">
                 <button class="button button-outline" type="button" @click="exportBackup">Download backup</button>
                 <button class="button button-outline" type="button" @click="fileInput?.click()">Import backup</button>
                 <input ref="fileInput" class="sr-only" type="file" accept="application/json,.json" @change="importBackup" />
               </div>
             </div>
-            <p class="editor-help">Edit the JSON to update your profile, work, experience, skills, and services. Keep field names and list formats intact. Download a backup before a major edit.</p>
-            <label class="sr-only" for="content-editor">Portfolio JSON content</label>
-            <textarea id="content-editor" v-model="draft" class="code-editor" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
-            <div class="editor-footer">
-              <span v-if="parsedDraft.error" class="editor-validation invalid" role="status">JSON needs attention: {{ parsedDraft.error }}</span>
-              <span v-else class="editor-validation valid">JSON syntax looks good. Review content before publishing.</span>
-              <span v-if="lastSaved" class="save-timestamp">Saved {{ new Date(lastSaved).toLocaleString() }}</span>
-            </div>
-            <div v-if="status" class="form-feedback success" role="status">{{ status }}</div>
-            <div v-if="error" class="form-feedback error" role="alert">{{ error }}</div>
-            <button class="button button-primary publish-button" type="button" :disabled="busy || Boolean(parsedDraft.error)" @click="saveContent">
-              {{ busy ? 'Saving...' : 'Publish changes' }} <span aria-hidden="true">↗</span>
-            </button>
+
+            <form class="form-editor" @submit.prevent="saveContent">
+              <div class="form-section">
+                <h3>Profile</h3>
+                <div class="form-grid two-up">
+                  <label>Name<input v-model="draft.profile.name" type="text" /></label>
+                  <label>Role<input v-model="draft.profile.role" type="text" /></label>
+                  <label>Location<input v-model="draft.profile.location" type="text" /></label>
+                  <label>Email<input v-model="draft.profile.email" type="email" /></label>
+                  <label>Phone<input v-model="draft.profile.phone" type="tel" /></label>
+                  <label>Image path<input v-model="draft.profile.image" type="text" /></label>
+                  <label>Website URL<input v-model="draft.profile.website" type="url" /></label>
+                  <label>Availability<input v-model="draft.profile.availability" type="text" /></label>
+                </div>
+                <label>Headline<input v-model="draft.headline" type="text" /></label>
+                <label>About<textarea v-model="draft.about" rows="4" /></label>
+              </div>
+
+              <div class="form-section">
+                <h3>Social links</h3>
+                <div class="form-grid two-up">
+                  <label>LinkedIn<input v-model="draft.profile.social.linkedin" type="url" /></label>
+                  <label>GitHub<input v-model="draft.profile.social.github" type="url" /></label>
+                  <label>Instagram<input v-model="draft.profile.social.instagram" type="url" /></label>
+                  <label>Facebook<input v-model="draft.profile.social.facebook" type="url" /></label>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3>Experience</h3>
+                <div v-for="(item, index) in draft.experience" :key="`experience-${index}`" class="repeat-group">
+                  <div class="repeat-heading">
+                    <span>Entry {{ index + 1 }}</span>
+                    <button type="button" class="mini-button" @click="removeEntry(draft.experience, index)">Remove</button>
+                  </div>
+                  <div class="form-grid two-up">
+                    <label>Title<input v-model="item.title" type="text" /></label>
+                    <label>Period<input v-model="item.period" type="text" /></label>
+                    <label class="full-width">Organization<input v-model="item.organization" type="text" /></label>
+                    <label class="full-width">Description<textarea v-model="item.description" rows="3" /></label>
+                  </div>
+                </div>
+                <button type="button" class="button button-outline small-button" @click="addEntry(draft.experience, makeExperienceItem)">Add experience</button>
+              </div>
+
+              <div class="form-section">
+                <h3>Education</h3>
+                <div v-for="(item, index) in draft.education" :key="`education-${index}`" class="repeat-group">
+                  <div class="repeat-heading">
+                    <span>Entry {{ index + 1 }}</span>
+                    <button type="button" class="mini-button" @click="removeEntry(draft.education, index)">Remove</button>
+                  </div>
+                  <div class="form-grid two-up">
+                    <label>Title<input v-model="item.title" type="text" /></label>
+                    <label>Period<input v-model="item.period" type="text" /></label>
+                    <label class="full-width">Organization<input v-model="item.organization" type="text" /></label>
+                    <label class="full-width">Description<textarea v-model="item.description" rows="3" /></label>
+                  </div>
+                </div>
+                <button type="button" class="button button-outline small-button" @click="addEntry(draft.education, makeEducationItem)">Add education</button>
+              </div>
+
+              <div class="form-section">
+                <h3>Skills</h3>
+                <div v-for="(skill, index) in draft.skills" :key="`skill-${index}`" class="repeat-inline-group">
+                  <input v-model="draft.skills[index]" type="text" placeholder="Skill name" />
+                  <button type="button" class="mini-button" @click="removeEntry(draft.skills, index)">Remove</button>
+                </div>
+                <button type="button" class="button button-outline small-button" @click="addEntry(draft.skills, makeSkillItem)">Add skill</button>
+              </div>
+
+              <div class="form-section">
+                <h3>Projects</h3>
+                <div v-for="(item, index) in draft.projects" :key="`project-${index}`" class="repeat-group project-group">
+                  <div class="repeat-heading">
+                    <span>Project {{ index + 1 }}</span>
+                    <button type="button" class="mini-button" @click="removeEntry(draft.projects, index)">Remove</button>
+                  </div>
+                  <div class="form-grid two-up">
+                    <label>Title<input v-model="item.title" type="text" /></label>
+                    <label>Category<input v-model="item.category" type="text" /></label>
+                    <label>Year<input v-model="item.year" type="text" /></label>
+                    <label>Image path<input v-model="item.image" type="text" /></label>
+                    <label class="full-width">Description<textarea v-model="item.description" rows="3" /></label>
+                    <label class="full-width">Tags<input :value="(item.tags || []).join(', ')" @input="updateTagList(item.tags || [], $event.target.value)" type="text" /></label>
+                    <label class="full-width">Project link<input v-model="item.link" type="url" /></label>
+                  </div>
+                  <div class="case-study-block">
+                    <h4>Case study</h4>
+                    <div class="form-grid three-up">
+                      <label>Challenge<textarea v-model="item.caseStudy.challenge" rows="2" /></label>
+                      <label>Approach<textarea v-model="item.caseStudy.approach" rows="2" /></label>
+                      <label>Outcome<textarea v-model="item.caseStudy.outcome" rows="2" /></label>
+                    </div>
+                  </div>
+                </div>
+                <button type="button" class="button button-outline small-button" @click="addEntry(draft.projects, makeProjectItem)">Add project</button>
+              </div>
+
+              <div class="form-section">
+                <h3>Services</h3>
+                <div v-for="(item, index) in draft.services" :key="`service-${index}`" class="repeat-group">
+                  <div class="repeat-heading">
+                    <span>Service {{ index + 1 }}</span>
+                    <button type="button" class="mini-button" @click="removeEntry(draft.services, index)">Remove</button>
+                  </div>
+                  <div class="form-grid two-up">
+                    <label>Title<input v-model="item.title" type="text" /></label>
+                    <label>Icon<input v-model="item.icon" type="text" /></label>
+                    <label class="full-width">Description<textarea v-model="item.description" rows="3" /></label>
+                  </div>
+                </div>
+                <button type="button" class="button button-outline small-button" @click="addEntry(draft.services, makeServiceItem)">Add service</button>
+              </div>
+
+              <div class="editor-footer form-footer">
+                <span v-if="parsedDraft.error" class="editor-validation invalid" role="status">Review your edits: {{ parsedDraft.error }}</span>
+                <span v-else class="editor-validation valid">Ready to publish.</span>
+                <span v-if="lastSaved" class="save-timestamp">Saved {{ new Date(lastSaved).toLocaleString() }}</span>
+              </div>
+              <div v-if="status" class="form-feedback success" role="status">{{ status }}</div>
+              <div v-if="error" class="form-feedback error" role="alert">{{ error }}</div>
+              <button class="button button-primary publish-button" type="submit" :disabled="busy || Boolean(parsedDraft.error)">
+                {{ busy ? 'Saving...' : 'Publish changes' }} <span aria-hidden="true">↗</span>
+              </button>
+            </form>
           </section>
+
           <aside class="editor-sidebar">
             <section class="admin-card">
               <p class="eyebrow">PORTFOLIO REACH</p>
@@ -223,8 +389,8 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
               <p class="eyebrow">A SAFE WORKFLOW</p>
               <h2>Draft, review, publish.</h2>
               <ol class="workflow-list">
-                <li><span>01</span>Edit the JSON data. Lists such as <code>projects</code> accept multiple items.</li>
-                <li><span>02</span>Fix any syntax errors. JSON strings must use double quotes.</li>
+                <li><span>01</span>Update the form fields with your latest portfolio details.</li>
+                <li><span>02</span>Check your entries before saving. Missing values or invalid links can be flagged.</li>
                 <li><span>03</span>Download a backup or import a previously saved copy.</li>
                 <li><span>04</span>Publish. Changes are saved to Supabase and appear on the public site.</li>
               </ol>
@@ -232,7 +398,7 @@ onBeforeUnmount(() => authSubscription?.unsubscribe())
             <section class="admin-card">
               <p class="eyebrow">IMAGE PATHS</p>
               <p>Use an existing image path, for example <code>/assets/img/profile.jpeg</code> or <code>/assets/img/portfolio/nexus-1.png</code>. External project links must start with <code>https://</code>.</p>
-              <p>For a stronger project story, fill in a project's <code>caseStudy.challenge</code>, <code>caseStudy.approach</code>, and <code>caseStudy.outcome</code>. Share only accurate outcomes you are allowed to disclose.</p>
+              <p>For a stronger project story, fill in a project's case study fields. Share only accurate outcomes you are allowed to disclose.</p>
             </section>
           </aside>
         </div>

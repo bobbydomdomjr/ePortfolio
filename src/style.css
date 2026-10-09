@@ -1584,20 +1584,128 @@ img {
   margin-block: 13px 16px;
 }
 
-.code-editor {
-  display: block;
+.form-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.form-section h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 18px;
+  letter-spacing: -0.04em;
+}
+
+.form-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.two-up {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.three-up {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.form-section label,
+.repeat-group label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.form-section input,
+.form-section textarea,
+.repeat-group input,
+.repeat-group textarea,
+.repeat-inline-group input {
   width: 100%;
-  min-height: 620px;
-  padding: 15px;
+  padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: color-mix(in srgb, var(--paper), var(--paper-raised) 40%);
+  background: transparent;
   color: var(--ink);
-  font-family: var(--mono);
-  font-size: 11px;
-  line-height: 1.75;
+  font: inherit;
   resize: vertical;
-  tab-size: 2;
+}
+
+.form-section textarea,
+.repeat-group textarea {
+  min-height: 90px;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.repeat-group,
+.repeat-inline-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--paper), var(--paper-raised) 35%);
+}
+
+.repeat-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mini-button {
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+}
+
+.small-button {
+  width: fit-content;
+}
+
+.repeat-inline-group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.case-study-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 10px;
+}
+
+.case-study-block h4 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 15px;
+  letter-spacing: -0.03em;
 }
 
 .editor-footer {
@@ -1606,6 +1714,10 @@ img {
   justify-content: space-between;
   gap: 12px;
   margin-top: 11px;
+}
+
+.form-footer {
+  margin-top: 0;
 }
 
 .editor-validation,
