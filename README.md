@@ -15,6 +15,18 @@ The public site runs at the local URL printed by Vite; open `/admin` for the edi
 
 Create a local `.env` from `.env.example` when connecting Supabase. Never put a Supabase `service_role` key or email password in frontend variables. `VITE_` settings are public to browser visitors.
 
+## Project structure
+
+- `src/App.vue` — public portfolio page, navigation, interaction, and content loading.
+- `src/components/Admin.vue` — authenticated, section-based portfolio editor.
+- `src/content.js` — starter portfolio content used when no published Supabase row is available.
+- `src/lib/` — Supabase client, safe link/image handling, analytics, and content validation.
+- `src/style.css` — shared visual system, responsive layouts, and reduced-motion-aware animation.
+- `api/contact.js` — server-side contact form handler; mail credentials stay in host environment variables.
+- `supabase/migrations/` — database schema and row-level security policy.
+- `assets/img/` — source images copied into `public/assets/img/` by `scripts/copy-assets.js` before development and production builds.
+- `dist/` — generated Vite output; do not edit it by hand.
+
 ## Supabase content editor setup
 
 1. Create a Supabase project. From **Project Settings → API**, copy the Project URL and publishable/anon key.
@@ -50,6 +62,8 @@ npm run preview
 ```
 
 Vercel builds the Vite app into `dist/`; `vercel.json` routes `/admin` to the Vue app and retains the server-side contact function. The build copies the existing portfolio images into the generated public directory.
+
+Before deploying, apply the Supabase migration, configure the required Vercel environment variables, and run `npm test` and `npm run build`. Deploy a preview first, then verify the public page, `/admin` sign-in, content publishing, and `/api/contact` with valid server mail settings. The contact form responds with an explicit setup error until `GMAIL_USER` and `GMAIL_APP_PASSWORD` are configured. A successful local build does not deploy the site; push the changes and confirm the Vercel deployment succeeds.
 
 ## Visitor analytics and professional outreach
 

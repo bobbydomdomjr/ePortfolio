@@ -32,6 +32,9 @@ export default async function contact(req, res) {
       return res.status(400).send('Invalid JSON');
     }
   }
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    return res.status(400).send('The request body must be a JSON object.');
+  }
 
   const name = String(body.name || '').trim().slice(0, 200);
   const email = String(body.email || '').trim().slice(0, 320);

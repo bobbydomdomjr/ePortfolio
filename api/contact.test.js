@@ -57,3 +57,23 @@ test('contact endpoint reports missing mail configuration', async () => {
     else process.env.GMAIL_APP_PASSWORD = gmailPassword
   }
 })
+
+test('contact endpoint rejects invalid JSON and non-object request bodies', async () => {
+  const gmailUser = process.env.GMAIL_USER
+  const gmailPassword = process.env.GMAIL_APP_PASSWORD
+  process.env.GMAIL_USER = 'test@example.com'
+  process.env.GMAIL_APP_PASSWORD = 'test-password'
+  try {
+    for (const body of ['{', 'null', '[]', '42']) {
+      const response = createResponse()
+      await contact({ method: 'POST', body }, response)
+      assert.equal(response.statusCode, 400)
+      assert.match(response.body, /Invalid JSON|request body must be a JSON object/)
+    }
+  } finally {
+    if (gmailUser === undefined) delete process.env.GMAIL_USER
+    else process.env.GMAIL_USER = gmailUser
+    if (gmailPassword === undefined) delete process.env.GMAIL_APP_PASSWORD
+    else process.env.GMAIL_APP_PASSWORD = gmailPassword
+  }
+})
