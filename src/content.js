@@ -2,7 +2,7 @@ export const defaultContent = {
   profile: {
     name: 'Bobby Domdom Jr',
     firstName: 'Bobby',
-    role: 'Database Administrator · IT Specialist · Web Developer',
+    role: 'Database Administrator · IT Operations · Web Development',
     location: 'Manila, Philippines',
     email: 'bobby.domdomjr1@gmail.com',
     phone: '+639511033187',
