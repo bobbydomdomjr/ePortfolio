@@ -8,3 +8,20 @@ if (!window.location.pathname.replace(/\/+$/, '').endsWith('/admin')) {
 }
 
 createApp(App).mount('#app')
+
+
+import { onMounted, onUnmounted } from 'vue';
+
+let reviewAutoplayTimer;
+
+onMounted(() => {
+  reviewAutoplayTimer = window.setInterval(() => {
+    if (content.testimonials.length > 1) {
+      moveReview(1);
+    }
+  }, 5000);
+});
+
+onUnmounted(() => {
+  window.clearInterval(reviewAutoplayTimer);
+});

@@ -1413,6 +1413,7 @@ img {
   will-change: transform;
 }
 
+
 .review-card {
   position: relative;
   display: flex;
@@ -1420,14 +1421,13 @@ img {
   width: min(100%, 320px);
   min-width: 0;
   aspect-ratio: 2 / 3;
-  height: auto;
   box-sizing: border-box;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 22px;
+  gap: 16px;
   margin: 0;
-  padding: 38px 24px 30px;
+  padding: 34px 24px 28px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: linear-gradient(
@@ -1436,84 +1436,21 @@ img {
     color-mix(in srgb, var(--mint), var(--paper-raised) 72%)
   );
   text-align: center;
-  transition:
-    background 240ms ease,
-    border-color 240ms ease,
-    color 240ms ease;
-}
-
-.review-card:hover,
-.review-card.is-selected,
-.review-card:active {
-  border-color: #173b69;
-  background: #173b69;
-  color: #ffffff;
-}
-
-.site[data-theme="dark"] .review-card:hover,
-.site[data-theme="dark"] .review-card.is-selected,
-.site[data-theme="dark"] .review-card:active {
-  border-color: #ffffff;
-  background: #ffffff;
-  color: #142640;
-}
-
-.review-card-toggle {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  border-radius: inherit;
-  background: transparent;
-  cursor: pointer;
-}
-
-.review-card-toggle:focus-visible {
-  outline-offset: 6px;
-}
-
-.review-card > :not(.review-card-toggle) {
-  position: relative;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.review-quote-mark {
-  position: absolute;
-  top: 19px;
-  left: 27px;
-  color: var(--green);
-  font-family: var(--display);
-  font-size: 58px;
-  line-height: 1;
-  opacity: 0.22;
-}
-
-.review-card:hover .review-quote-mark,
-.review-card.is-selected .review-quote-mark {
-  color: currentColor;
-  opacity: 0.5;
-}
-
-.site[data-theme="dark"] .review-card:hover .review-quote-mark,
-.site[data-theme="dark"] .review-card.is-selected .review-quote-mark {
-  color: #142640;
 }
 
 .review-author {
   display: flex;
-  width: min(100%, 590px);
+  width: 100%;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  text-align: left;
+  gap: 12px;
+  text-align: center;
 }
 
 .reviewer-photo {
   display: grid;
-  width: 76px;
-  height: 76px;
+  width: 100px;
+  height: 100px;
   flex: 0 0 auto;
   overflow: hidden;
   place-items: center;
@@ -1522,9 +1459,7 @@ img {
   background: var(--mint);
   color: var(--green);
   box-shadow: 0 0 0 1px var(--line), 0 6px 18px rgb(20 38 64 / 10%);
-  font-family: var(--display);
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 24px;
 }
 
 .reviewer-photo img {
@@ -1533,16 +1468,25 @@ img {
   object-fit: cover;
 }
 
-.review-card blockquote {
-  width: min(100%, 650px);
-  margin: 0;
-  font-family: var(--display);
-  font-size: clamp(16px, 2vw, 20px);
-  font-weight: 500;
-  line-height: 1.75;
-  letter-spacing: -0.025em;
-  quotes: "“" "”" "‘" "’";
+.review-card figcaption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
 }
+
+.review-card blockquote {
+  width: 100%;
+  margin: 4px 0 0;
+  font-family: var(--display);
+  font-size: clamp(14px, 1.5vw, 17px);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
 
 .review-card blockquote::before {
   content: open-quote;
