@@ -13,7 +13,7 @@
     "@supabase/supabase-js": "^2.57.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "nodemailer": "^10.0.16",
+    "nodemailer": "^10.1.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "vue": "^3.5.21"
